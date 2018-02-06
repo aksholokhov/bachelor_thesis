@@ -26,7 +26,7 @@ class AirConditioningSystem(GeneralDevice):
         self.__MAX_COMFORT_TEMP = 30
         self.__MIN_COMFORT_TEMP = 14
         self.__MEAN_SENSITIVITY = 1
-        self.__SENSITIVITY_VARIANCE = 2
+        self.__SENSITIVITY_VARIANCE = 3
         self.__ENERGY_CONSUMPTION = 1
         self.__DEFAULT_POLICY = default_policy
         self.__P = self.__DEFAULT_POLICY
@@ -49,15 +49,19 @@ class AirConditioningSystem(GeneralDevice):
             #self.__sensitivity = np.abs(np.random.normal(self.__MEAN_SENSITIVITY, self.__SENSITIVITY_VARIANCE))
             #self.__p = lambda t: 1 - 1./np.cosh(self.__sensitivity*(t - self.__optimal_temperature))
         else:
-            self.__sensitivity = rnd.randint(0, self.__SENSITIVITY_VARIANCE)
+            self.__sensitivity = rnd.randint(1, self.__SENSITIVITY_VARIANCE)
 
             def p(t):
                 with self.__p_lock:
                     if np.abs(t - self.__optimal_temperature) < self.__sensitivity:
                         return 0
                     if self.__state == 0:
+                        if t < self.__optimal_temperature:
+                            return 0
                         return self.__P[0][1]
                     elif self.__state == 1:
+                        if t > self.__optimal_temperature:
+                            return 0
                         return self.__P[1][0]
                     else:
                         raise Exception("wrong state")
@@ -72,6 +76,7 @@ class AirConditioningSystem(GeneralDevice):
 
             if self.__rnd.random() < self.__p(self.__temperature):
                 self.__state ^= 1
+                #print(self.__state, self.__temperature, self.__p(self.__temperature), self.__optimal_temperature, self.__sensitivity)
             else:
                 self.__temperature += 1 if self.__state == 0 else -1
 
