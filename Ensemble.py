@@ -3,14 +3,15 @@ from threading import Lock
 
 class AirConditioningEnsemble:
 
-    def __init__(self, number_of_devices, tick=0.1):
+    def __init__(self, number_of_devices, tick=0.1, default_policy = None, random_seed = None):
         self.__devices = []
         self.__log = {"energy" : 0, "working" : 0, "ON" : 1}
         self.__log_lock = Lock()
         self.last_check = 0
 
         for i in range(number_of_devices):
-            self.__devices.append(AirConditioningSystem(name=i, log=self.__log, log_lock=self.__log_lock, tick=tick))
+            self.__devices.append(AirConditioningSystem(id=i, log=self.__log, log_lock=self.__log_lock, tick=tick,
+                                                        default_policy=default_policy, random_seed = random_seed))
 
     def run(self):
         if len(self.__devices) == 0:

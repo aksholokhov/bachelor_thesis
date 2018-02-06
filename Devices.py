@@ -1,4 +1,5 @@
 import numpy as np
+from random import Random
 from threading import Thread, Lock
 from time import sleep
 
@@ -6,29 +7,38 @@ class GeneralDevice(Thread):
 
     def __init__(self):
         Thread.__init__(self)
-        pass
 
 
 class AirConditioningSystem(GeneralDevice):
 
-    def __init__(self, name, log, log_lock, continuous = False, tick = 0.1):
+    def __init__(self, id, log, log_lock, continuous = False, tick = 0.1, default_policy = None, random_seed = None):
         GeneralDevice.__init__(self)
+
+        rnd = Random()
+        if random_seed is not None:
+            rnd.seed(random_seed + int(id))
+
+        self.__rnd = rnd
+
+        if default_policy is None:
+            default_policy = [[0.5, 0.5], [0.5, 0.5]]
+
         self.__MAX_COMFORT_TEMP = 30
         self.__MIN_COMFORT_TEMP = 14
         self.__MEAN_SENSITIVITY = 1
         self.__SENSITIVITY_VARIANCE = 2
         self.__ENERGY_CONSUMPTION = 1
-        self.__DEFAULT_POLICY = [[0.5, 0.5], [0.5, 0.5]]
+        self.__DEFAULT_POLICY = default_policy
         self.__P = self.__DEFAULT_POLICY
 
         self.__p_lock = Lock()
         self.__tick = tick
         self.__log = log
         self.__log_lock = log_lock
-        self.__name = name
-        self.__optimal_temperature = np.random.randint(self.__MIN_COMFORT_TEMP, self.__MAX_COMFORT_TEMP)
-        self.__temperature = np.random.randint(self.__MIN_COMFORT_TEMP, self.__MAX_COMFORT_TEMP)
-        self.__state = np.random.randint(0, 2)
+        self.__name = id
+        self.__optimal_temperature = rnd.randint(self.__MIN_COMFORT_TEMP, self.__MAX_COMFORT_TEMP)
+        self.__temperature = rnd.randint(self.__MIN_COMFORT_TEMP, self.__MAX_COMFORT_TEMP)
+        self.__state = rnd.randint(0, 1)
 
         with self.__log_lock:
             self.__log["working"] += self.__state
@@ -39,7 +49,7 @@ class AirConditioningSystem(GeneralDevice):
             #self.__sensitivity = np.abs(np.random.normal(self.__MEAN_SENSITIVITY, self.__SENSITIVITY_VARIANCE))
             #self.__p = lambda t: 1 - 1./np.cosh(self.__sensitivity*(t - self.__optimal_temperature))
         else:
-            self.__sensitivity = np.abs(np.random.normal(0, self.__SENSITIVITY_VARIANCE))
+            self.__sensitivity = rnd.randint(0, self.__SENSITIVITY_VARIANCE)
 
             def p(t):
                 with self.__p_lock:
@@ -60,7 +70,7 @@ class AirConditioningSystem(GeneralDevice):
             sleep(self.__tick)
             last_state = self.__state
 
-            if np.random.random() < self.__p(self.__temperature):
+            if self.__rnd.random() < self.__p(self.__temperature):
                 self.__state ^= 1
             else:
                 self.__temperature += 1 if self.__state == 0 else -1
