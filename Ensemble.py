@@ -29,7 +29,7 @@ class AirConditioningEnsemble:
 
         self.__devices = []
 
-    def change_state(self, P):
+    def change_policy(self, P):
         for device in self.__devices:
             device.change_policy(P)
 

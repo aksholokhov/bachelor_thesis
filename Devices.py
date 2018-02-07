@@ -25,9 +25,10 @@ class AirConditioningSystem(GeneralDevice):
 
         self.__MAX_COMFORT_TEMP = 30
         self.__MIN_COMFORT_TEMP = 14
-        self.__MEAN_SENSITIVITY = 1
         self.__SENSITIVITY_VARIANCE = 3
         self.__ENERGY_CONSUMPTION = 1
+        self.__MIN_TEMP = 10
+        self.__MAX_TEMP = 40
         self.__DEFAULT_POLICY = default_policy
         self.__P = self.__DEFAULT_POLICY
 
@@ -79,6 +80,7 @@ class AirConditioningSystem(GeneralDevice):
                 #print(self.__state, self.__temperature, self.__p(self.__temperature), self.__optimal_temperature, self.__sensitivity)
             else:
                 self.__temperature += 1 if self.__state == 0 else -1
+                self.__temperature = max(min(self.__temperature, self.__MAX_TEMP), self.__MIN_TEMP)
 
             with self.__log_lock:
                 self.__log["working"] += self.__state - last_state
