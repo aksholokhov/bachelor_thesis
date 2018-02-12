@@ -39,7 +39,7 @@ class AirConditioningSystem(GeneralDevice):
         self.__name = id
         self.__optimal_temperature = rnd.randint(self.__MIN_COMFORT_TEMP, self.__MAX_COMFORT_TEMP)
         self.__temperature = rnd.randint(self.__MIN_COMFORT_TEMP, self.__MAX_COMFORT_TEMP)
-        self.__state = rnd.randint(0, 1)
+        self.__state = 1#rnd.randint(0, 1)
 
         with self.__log_lock:
             self.__log["working"] += self.__state
