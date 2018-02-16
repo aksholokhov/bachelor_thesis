@@ -10,7 +10,7 @@ def lag_grad_p(P, Q, Y, rho, w, z, pi):
     third_part = z.dot(one.T)
     forth_part = pi.dot(w.T)
     fifth_part = rho*(P - one.T.dot(one))
-    last_part = (P - one.dot(one.T)).dot(diag(pi.squeeze()))
+    last_part = rho*(P - one.dot(one.T)).dot(diag(pi.squeeze()))
     return first_part + second_part - third_part - forth_part + fifth_part + last_part
 
 def lag_grad_q(P, Q, Y, rho, pi, s, c, q, u):
@@ -28,6 +28,7 @@ def solve(c, u, s, pi, q):
     Y = diag(ones(n))
     rho = 1
     gamma = 1.25
+    eta = 0.25
     w = ones(n).reshape((n, 1))
     z = ones(n).reshape((n, 1))
     one = ones(n).reshape((n, 1))
@@ -41,6 +42,7 @@ def solve(c, u, s, pi, q):
 
     P_prev = 30*P
     i = 0
+    constraint_violation = 0
     while norm(P - Q) > eps and norm(P - P_prev) > eps and i < outer_steps_max:
         j = 0
         P_prev = P
@@ -49,7 +51,7 @@ def solve(c, u, s, pi, q):
             P = P - step(j)*lag_grad_loc
             lag_grad_loc = lag_grad_p(P, Q, Y, rho, w, z, pi)
             j = j + 1
-            lag_grad_loc_norm = norm(lag_grad_loc)
+            lag_grad_loc_norm = norm(lag_grad_loc)  #debug
 
         P.clip(0, out=P)
 
@@ -60,7 +62,7 @@ def solve(c, u, s, pi, q):
         while norm(lag_grad_loc) ** 2 > eps and j < inner_steps_max:
             Q = Q - step(j) * lag_grad_loc
             lag_grad_loc = lag_grad_q(P, Q, Y, rho, pi, s, c, q, u)
-            lag_grad_loc_norm = norm(lag_grad_loc)
+            lag_grad_loc_norm = norm(lag_grad_loc)  #debug
             j = j + 1
 
         Q.clip(0, out=Q)
@@ -68,13 +70,17 @@ def solve(c, u, s, pi, q):
 
         P_Q_difference.append(norm(P - Q))
 
-        Y = Y - rho*(P - Q)
-        z = z  - rho*(P.dot(one) - one)
-        w = w - rho*(P.T.dot(pi) - pi)
-        rho = rho*gamma
-        i = i + 1
+        prev_constraint_violation = constraint_violation
+        constraint_violation = max(norm(P.dot(one) - one)**2, norm(P.T.dot(pi) - pi)**2, norm(P - Q)**2)
+        if constraint_violation < eta*prev_constraint_violation or i == 0:
+            Y = Y - rho*(P - Q)
+            z = z  - rho*(P.dot(one) - one)
+            w = w - rho*(P.T.dot(pi) - pi)
+            i = i + 1
+        else:
+            rho = rho*gamma
 
-    return P, {"P_grad_norm": P_grad_norm, "P_Q_difference": P_Q_difference}, j
+    return P, {"P_grad_norm": P_grad_norm, "P_Q_difference": P_Q_difference}, i
 
 
 if __name__ == "__main__":
