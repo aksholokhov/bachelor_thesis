@@ -1,5 +1,7 @@
-from Devices import AirConditioningSystem
+from Devices import AirConditioningSystem, AbstractDevice
 from threading import Lock
+
+import numpy as np
 
 class AirConditioningEnsemble:
 
@@ -44,3 +46,45 @@ class AirConditioningEnsemble:
     def get_temperature(self, name):
         with self.__log_lock:
             return self.__log["%s_temp"%name]
+
+class AbstractEnsemble:
+
+    def __init__(self, number_of_devices, tick=0.1, default_policy = None, random_seed = None):
+        self.__devices = []
+        self.__N = default_policy.shape[0]
+        self.__log = {"working" : np.zeros(self.__N), "ON" : 1}
+        self.__log_lock = Lock()
+
+        for i in range(number_of_devices):
+            self.__devices.append(AbstractDevice(id=i,
+                                                 log=self.__log,
+                                                 log_lock=self.__log_lock,
+                                                 default_policy=default_policy,
+                                                 tick=tick,
+                                                 random_seed = random_seed))
+
+    def run(self):
+        if len(self.__devices) == 0:
+            raise Exception("No devices to launch")
+
+        for device in self.__devices:
+            device.start()
+
+    def stop(self):
+        with self.__log_lock:
+            self.__log["ON"] = 0
+
+        for device in self.__devices:
+            device.join()
+
+        self.__devices = []
+
+    def change_policy(self, P):
+        for device in self.__devices:
+            device.change_policy(P)
+
+    def get_state_distribution(self):
+        with self.__log_lock:
+            return self.__log["working"]
+
+

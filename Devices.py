@@ -93,3 +93,59 @@ class AirConditioningSystem(GeneralDevice):
     def change_policy(self, P):
         with self.__p_lock:
             self.__P = P
+
+
+######
+#----#
+######
+
+class AbstractDevice(GeneralDevice):
+
+    def __init__(self, id, log, log_lock, default_policy, tick = 0.1, random_seed = None):
+        GeneralDevice.__init__(self)
+
+        rnd = Random()
+        if random_seed is not None:
+            rnd.seed(random_seed + int(id))
+
+        self.__rnd = rnd
+        self.__N = default_policy.shape[0]
+        self.__DEFAULT_POLICY = default_policy
+        self.__P = self.__DEFAULT_POLICY
+
+        self.__p_lock = Lock()
+        self.__tick = tick
+        self.__log = log
+        self.__log_lock = log_lock
+        self.__name = id
+        self.__state = rnd.randint(0, self.__N-1)
+
+        with self.__log_lock:
+            self.__log["working"][self.__state] += 1
+            self.__log["%s_state" % self.__name] = self.__state
+
+        def next_state():
+            with self.__p_lock:
+                transition_probabilities = self.__P[self.__state]
+                return self.__rnd.choices(range(self.__N), weights=transition_probabilities)[0]
+
+        self.__jump = next_state
+
+
+    def run(self):
+        power_off = 0
+        while not power_off:
+            sleep(self.__tick)
+            last_state = self.__state
+            self.__state = self.__jump()
+            with self.__log_lock:
+                self.__log["working"][self.__state] += 1
+                self.__log["working"][last_state] -= 1
+                self.__log["%s_state"%self.__name] = self.__state
+                if self.__log["ON"] == 0:
+                    power_off = 1
+
+
+    def change_policy(self, P):
+        with self.__p_lock:
+            self.__P = P
