@@ -1,0 +1,6 @@
+.idea/
+doc/thesis/.texpadtmp
+doc/thesis/main.pdf
+experiments/.ipynb_checkpoints
+experiments/src
+src/__pycache__
