@@ -4,3 +4,4 @@ doc/thesis/main.pdf
 experiments/.ipynb_checkpoints
 experiments/src
 src/__pycache__
+doc/termostatically_controlled_loads
