@@ -26,3 +26,5 @@ default_preference_profile = {
     "temp_variance" : 1,
     "time_variance" : 1
 }
+
+generation_price = lambda t: 1 + 0.5*np.sin(2*np.pi*(t+13)/(24))

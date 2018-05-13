@@ -2,6 +2,7 @@ from src.Devices import AirConditioningSystem, AbstractDevice
 from threading import Lock
 from random import Random
 import numpy as np
+from scipy.optimize import minimize
 
 class AirConditioningEnsemble:
 
@@ -172,15 +173,14 @@ class ThermalDevice:
 
     def run(self, policy):
         self.__logger["control_distribution"][self.__policy] -= 1
+        self.__policy = self.choose_policy()
         if policy == 0:
             is_accept = 0
         else:
-            is_accept = self.__room_model.accept(self.__time)[self.__policy, policy-1]
+            is_accept = self.__room_model.accept(self.__time, policy-1, self.__policy)
+            if is_accept:
+                self.__policy = policy-1
 
-        if is_accept:
-            self.__policy = policy-1
-        else:
-            self.__policy = self.choose_policy()
 
         self.__logger["control_distribution"][self.__policy] += 1
 
@@ -191,7 +191,6 @@ class ThermalDevice:
             self.__logger["state_distribution"][next_state] += 1
             self.__state = next_state
             self.__logger["total_consumption"][-1] += self.__room_model.q[self.__state]
-            #print(self.__state, self.__room_model.q[self.__state], self.__logger["total_consumption"][-1])
         self.__time = (self.__time + 1) % 24
         return is_accept
 
@@ -208,6 +207,16 @@ def eiv(P):
     stationary = stationary / np.sum(stationary)
     return np.real(stationary)
 
+
+def learn_regression(X, y, n):
+    m = X.shape[1]
+    f = lambda w: np.linalg.norm(X.dot(w) - y)**2
+    jac = lambda w: 2*X.T.dot(X.dot(w) - y)
+    cons = {'type' : 'eq', 'fun' : lambda x: sum(x) - n}
+    bounds = tuple([(0, None) for _ in range(m)])
+    res = minimize(f, np.zeros(m).reshape(-1, 1), constraints=cons, bounds=bounds)
+    return res.x
+
 class RoomModel:
 
     def __init__(self, environment_temp, controls, q, tau, user_profile):
@@ -219,9 +228,32 @@ class RoomModel:
         self.tau = tau # thermal_coefficient * tau ~= 4 -- works good
         self.__thermal_coefficient = lambda t: 1
         self.temps = lambda t: [environment_temp(t) + self.tau*self.__thermal_coefficient(t) * q.T.dot(eiv(x)) for x in controls]
-        self.accept = lambda t: [[np.abs(self.temps(t)[i] - self.temps(t)[j]) < 2
-                                  and self.temps(t)[i] > 17 and self.temps(t)[i] < 26
-                                  for j in range(len(self.controls))] for i in range(len(self.controls))]
+        self.accept = lambda t, i, j: np.abs(self.temps(t)[i] - self.temps(t)[j]) < 2 and self.temps(t)[i] > 17 and self.temps(t)[i] < 26
 
 
+
+class SystemOperator:
+
+    def __init__(self, generation_price, consumption_threshold):
+        self.__gen_price = generation_price
+        self.__time = 0
+        self.__target = 0
+        self.__target_delay = 0
+        self.__consumption_threshold = consumption_threshold
+
+    def send_consumption(self, consumption):
+        self.__last_consumption = consumption
+        self.__time = (self.__time + 1) % 24
+        if self.__last_consumption*self.__gen_price(self.__time) > self.__consumption_threshold:
+            next_hour = (self.__time + 1) % 24
+            self.__target = self.__consumption_threshold/self.__gen_price(next_hour)
+            self.__target_delay = 3
+        else:
+            if self.__target_delay > 0:
+                self.__target_delay -= 1
+            else:
+                self.__target = 0
+
+    def get_target(self):
+        return self.__target
 
