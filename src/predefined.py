@@ -12,7 +12,7 @@ default_controls = [
 
 q = array([0, 1, 2])
 
-environment_temp = lambda t: 18 + 2*np.sin(2*np.pi/24*t)
+environment_temp = lambda t: 20 + 3*np.sin(2*np.pi/24*(t+15))
 
 default_preference_profile = {
     "morning_time_mean" : 7,

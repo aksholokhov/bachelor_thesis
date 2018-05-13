@@ -89,11 +89,16 @@ class AbstractEnsemble:
 
 class FastAbstractEnsemble:
 
-    def __init__(self, number_of_devices, N, device_generator):
+    def __init__(self, number_of_devices, N, m, device_generator):
         self.__devices = []
         self.__n = number_of_devices
-        self.__state_distribution = np.zeros(N)
-        self.log = {"accepted" : [], "state_distribution" : self.__state_distribution,  "total_consumption": []}
+        self.__state_distribution = np.zeros(N)  # for debug purpose only: ensemble can not know this
+        self.__control_distribution = np.zeros(m)   # as well as this
+        self.log = {"accepted" : [],
+                    "state_distribution" : self.__state_distribution,
+                    "total_consumption": [],
+                    "control_distribution" : self.__control_distribution
+                    }
         self.__time = 0
         for i in range(self.__n):
             device = device_generator.generate_device(i, self.log, self.__time)
@@ -105,7 +110,7 @@ class FastAbstractEnsemble:
         for device in self.__devices:
             accepted += device.run(control)
         self.log["accepted"].append(accepted)
-        self.__time += 1
+        self.__time = (self.__time + 1) % 24
 
 
 class DeviceGenerator:
@@ -159,12 +164,14 @@ class ThermalDevice:
         self.__state = state
         self.__time = time
         self.__policy = self.choose_policy()
+        self.__logger["control_distribution"][self.__policy] += 1
 
     # for debug purposes only: to be removed
     def get_temps(self):
         return self.__temps
 
     def run(self, policy):
+        self.__logger["control_distribution"][self.__policy] -= 1
         if policy == 0:
             is_accept = 0
         else:
@@ -175,14 +182,17 @@ class ThermalDevice:
         else:
             self.__policy = self.choose_policy()
 
+        self.__logger["control_distribution"][self.__policy] += 1
+
         for _ in range(self.__room_model.tau):
             transition_probabilities = self.__room_model.controls[self.__policy][self.__state]
             next_state = self.__rnd.choices(range(self.__room_model.N), weights=transition_probabilities)[0]
             self.__logger["state_distribution"][self.__state] -= 1
             self.__logger["state_distribution"][next_state] += 1
-            self.__logger["total_consumption"][-1] += self.__room_model.q[self.__state]
             self.__state = next_state
-        self.__time += 1
+            self.__logger["total_consumption"][-1] += self.__room_model.q[self.__state]
+            #print(self.__state, self.__room_model.q[self.__state], self.__logger["total_consumption"][-1])
+        self.__time = (self.__time + 1) % 24
         return is_accept
 
     def choose_policy(self):
