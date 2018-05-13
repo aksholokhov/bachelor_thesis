@@ -1,6 +1,6 @@
 from src.Devices import AirConditioningSystem, AbstractDevice
 from threading import Lock
-
+from random import Random
 import numpy as np
 
 class AirConditioningEnsemble:
@@ -86,5 +86,116 @@ class AbstractEnsemble:
     def get_state_distribution(self):
         with self.__log_lock:
             return self.__log["working"]
+
+class FastAbstractEnsemble:
+
+    def __init__(self, number_of_devices, device_generator):
+        self.__devices = []
+        self.__N = number_of_devices
+        self.__state_distribution = np.zeros(self.__N)
+        self.log = {"accepted" : [], "state_distribution" : self.__state_distribution, "total_consumption": 0}
+        self.__time = 0
+        for i in range(self.__N):
+            device = device_generator.generate_device(i, self.log, self.__time)
+            self.__devices.append(device)
+
+    def run(self, control):
+        accepted = 0
+        for device in self.__devices:
+            accepted += device.run(control)
+        self.log["accepted"].append(accepted)
+        self.__time += 1
+
+
+class DeviceGenerator:
+
+    def __init__(self, random_seed, room_model, params):
+        rnd = Random()
+        self.__rnd = rnd
+        self.__rs = random_seed
+        self.__room_model = room_model
+        self.__params = params
+
+    def generate_device(self, number, logger, time):
+        rnd = self.__rnd
+        params = self.__params
+        rnd.seed(self.__rs + number)
+        temps = np.zeros(24)
+        morning_time = rnd.normalvariate(params["morning_time_mean"], params["time_variance"])
+        day_time = rnd.normalvariate(params["day_time_mean"], params["time_variance"])
+        evening_time = rnd.normalvariate(params["evening_time_mean"], params["time_variance"])
+        night_time = rnd.normalvariate(params["night_time_mean"], params["time_variance"])
+        morning_time = min(morning_time, day_time-1)
+        day_time = min(day_time, evening_time-1)
+        evening_time = min(evening_time, night_time-1)
+        night_time = min(night_time, morning_time-1)
+        temps[morning_time:day_time] = rnd.normalvariate(params["morning_temp_mean"], params["temp_variance"])
+        temps[day_time:evening_time] = rnd.normalvariate(params["day_temp_mean"], params["temp_variance"])
+        temps[evening_time:night_time] = rnd.normalvariate(params["evening_temp_mean"], params["temp_variance"])
+        temps[night_time:morning_time] = rnd.normalvariate(params["night_temp_mean"], params["temp_variance"])
+        return ThermalDevice(temps, self.__room_model, logger, self.__rs + number, time)
+
+
+class ThermalDevice:
+
+    def __init__(self, temps, room_model, logger, seed, time):
+        self.__temps = temps
+        self.__room_model = room_model
+        self.__logger = logger
+        self.__rnd = Random()
+        self.__rnd.seed(seed)
+        state = self.__rnd.randint(0, self.__room_model.N)
+        logger["state_distribution"][state] += 1
+        self.__state = state
+        self.__time = time
+        self.__policy = self.choose_policy()
+
+    def run(self, policy):
+        if policy == 0:
+            is_accept = 0
+        else:
+            is_accept = self.__room_model.accept(self.__time)[self.__policy, policy-1]
+
+        if is_accept:
+            self.__policy = policy-1
+        else:
+            self.__policy = self.choose_policy()
+
+        for _ in range(self.__room_model.tau):
+            transition_probabilities = self.__room_model.controls[self.__policy][self.__state]
+            next_state = self.__rnd.choices(range(self.__room_model.N), weights=transition_probabilities)[0]
+            self.__logger["state_distribution"][self.__state] -= 1
+            self.__logger["state_distribution"][next_state] += 1
+            self.__logger["total_consumption"] += self.__room_model.q[self.__state]
+            self.__state = next_state
+        self.__time += 1
+        return is_accept
+
+    def choose_policy(self):
+        t = self.__time
+        Q = self.__temps[t]
+        return np.argmax(np.abs(self.__room_model.temps(self.__time) - Q))
+
+
+
+def eiv(P):
+    S, U = np.linalg.eig(P.T)
+    stationary = np.array(U[:, np.where(np.abs(S - 1.) < 1e-8)[0][0]].flat)
+    stationary = stationary / np.sum(stationary)
+    return np.real(stationary)
+
+class RoomModel:
+
+    def __init__(self, environment_temp, controls, q, tau):
+        self.__c = environment_temp
+        self.controls = controls
+        self.q = q
+        self.tau = tau # thermal_coefficient * tau ~= 4 -- works good
+        self.__thermal_coefficient = lambda t: 1
+        self.temps = lambda t: [environment_temp(t) + self.tau*self.__thermal_coefficient(t) * q.T.dot(eiv(x)) for x in controls]
+        self.accept = lambda t: [[np.abs(self.temps(t)[i] - self.temps(t)[j]) < 2
+                                  and self.temps(t)[i] > 17 and self.temps(t)[i] < 26
+                                  for j in range(len(self.controls))] for i in range(len(self.controls))]
+
 
 
