@@ -5,3 +5,4 @@ experiments/.ipynb_checkpoints
 experiments/src
 src/__pycache__
 doc/termostatically_controlled_loads
+*.DS_Store
