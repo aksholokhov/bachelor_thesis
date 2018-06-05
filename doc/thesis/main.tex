@@ -7,8 +7,6 @@
 \usepackage{graphicx}
 \usepackage{amsmath, amssymb}
 \usepackage[english,russian]{babel}
-\usepackage{natbib}
-\bibliographystyle{aaai-named}
 
 \DeclareMathOperator{\E}{\mathop{\mathbb{E}}}
 
@@ -17,9 +15,43 @@
 
 \begin{document}
 
-\maketitle
+	\begin{titlepage}
+		\begin{center}
+			Московский Физико-Технический Институт\\
+			(Государственный Университет)\\
+			
+			\bigskip
+			Факультет Управления и Прикладной Математики\\
+			Кафедра <<Интеллектуальные Системы>>\\[10mm]
+			
+			\textsf{\large\bfseries
+				ДИПЛОМНАЯ РАБОТА СТУДЕНТА 374 ГРУППЫ\\[10mm]
+				<<Проблема разрешимости для задачи\\ квадратичных
+				уравнений>>
+			}\\[10mm]
+			
+			\begin{flushright}
+				\parbox{0.5\textwidth}{
+					Выполнил:\\
+					студент 4 курса 374 группы\\
+					\emph{Володин Сергей Евгеньевич}\\[5mm]
+					Научный руководитель:\\
+					к.ф-м.н.\\
+					\emph{Максимов Юрий Владимирович}
+				}
+			\end{flushright}
+			
+			\vspace{\fill}
+			Москва, 2017
+		\end{center}
+	\end{titlepage}
+	
 
 \section{Introduction}
+\subsection{Demand-Response}
+
+
+
 \subsection{Multiarmed Bandits}
 Reinforcement learning can be defined as a learning paradigm concerned with learning to control a complex system so to maximize a numerical performance measure that express some long-term objective \cite{Szepesvari2010}. The most typical setting where reinforcement learning operates is an iterative process of agent-environment interactions (see fig \textit{somefig}). Formally, at the moment $t$ the agent performs an action $a_t$ according to his current policy $\pi_t$ and gets a reward $r_t$ from the environment. The aim of the agent is to maximize the reward $\sum_{t = t_0}^{t_0 + T}r_t$ in a given time horizon $T$, or, equally, to minimize the regret $\bar{R_T} = R^x*_T - \sum_{t = t_0}^{t_0 + T}r_t$ where $R^*_T$ is the best reward the agent can theoretically get with the best policy $\pi^*$ available. However, in most of the real problem we have some additional information associated with each arm or with the situation in general. The vector that represents this information is usually called <<the context>> hence the related setup is called <<contextual multi armed bandit>>. Under the described conditions the agent should take into account the context to achieve better performance. 
  
@@ -38,6 +70,7 @@ In contrast to the regular bandit problem, the contextual bandit setup tends to 
     
     For this linear case \cite{Li2010} proposed an adaptation of UCB1 approach: LinUCB. Later \cite{Abbasi-Yadkori2011} provided better theoretical analysis by eliminating the assumption that the reward is identically distributed over time and arms, which is mostly far from true. The similar case with different regularization strategy was examined by \cite{Auer2003}. Another heuristics for balancing exploration and exploitation is known as Thompson Sapling was adapted to the linear reward model by \cite{Agrawal2013}. 
 
+\bibliographystyle{gost705}
 \bibliography{tcl}
 \end{document}
 
