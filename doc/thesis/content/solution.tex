@@ -1,4 +1,6 @@
 \chapter{Proposed Framework}
+\section{Markov Chain Modelled Loads} 
+
 \section{Notation and Problem Setup} We consider the system of $n$ thermostatically controlled loads, indexed by $i = 1, 2, \dots, n$. We suppose that there is an aggregator $A$ which send matrices ${\bar P}(t)$, $t=1, \dots, T$.
 
 We refer $P_i(t) \in \mathbb{R}^{N\times N}$ as a transition matrix of load $i$, $i = 1, \dots, n$, and $N$ is a number of possible states of any load (all loads have the same number of states). Each load has its own behaviour defined as a function $P_i(t)$. All these behaviours are independent. We also suppose that any ${\bar P}(t)$ and $P_{i}(t)$  $\in {\cal P} = \{P^{(1)}, P^{(2)}, \dots, P^{(m)}\}$. Each load is allowed to accept or reject a transition matrix ${\bar P}(t)$ according to the following rule: 
@@ -45,14 +47,7 @@ To sum up, the exact objective will be:
 \end{align}
 
 \section{Solution}
-In the following section we treat \ref{optimization_setup} as a \textbf{linear contextual bandit with knapsack} problem \cite{Badanidiyuru2013}. Define the policy as some mapping from the context $f(t)$ to the matrix number $i \in \{0, 1, \dots, m\}$ (a.k.a. arm). Define the regret ${\cal R}^\nu_T$ as the difference between performances under the best policy available and under some policy $\nu$:
-
-\begin{equation}
-    \label{eq:regret_definition}
-        {\cal R}^\nu_T = \sum_{t=1}^T(r^*(t) - r^{\nu}(t))
-\end{equation}
-
-The goal is to learn the policy $\nu$ which minimizes the regret:
+In the following section we treat \ref{optimization_setup} as a \textbf{linear contextual bandit with knapsack} problem \cite{Badanidiyuru2013}. Define the policy as some mapping from the context $f(t)$ to the matrix number $i \in \{0, 1, \dots, m\}$ (a.k.a. arm). The goal is to learn the policy $\nu$ which minimizes the regret:
 
 \begin{equation}
     \begin{split}
