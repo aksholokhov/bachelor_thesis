@@ -1,29 +1,17 @@
 
+% encoding and language packages
 \usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+
+% fonts and formatting packages
 \usepackage{times}
 \usepackage{latexsym}
 \usepackage{url}
-\usepackage{graphicx}
-\usepackage{amsmath, amssymb}
-\usepackage[english,russian]{babel}
-
-\usepackage{lipsum}
-\usepackage{amsfonts}
-\usepackage{graphicx}
-\usepackage{epstopdf}
-
-
 \usepackage{soul}
-\usepackage{algorithmic}
-\usepackage{algorithm}
-\DeclareMathOperator{\E}{\mathbb{E}}
-\usepackage{blindtext}
 
-\newcommand{\bP}{{\bar P}}
-\newcommand{\ts}{{\widetilde s}}
-\newcommand{\bs}{\bar s}
-
+% graphics packages
+\usepackage{graphicx}
 \ifpdf
   \DeclareGraphicsExtensions{.eps,.pdf,.png,.jpg}
 \else
@@ -31,7 +19,38 @@
 \fi
 
 
+% algorithm packages
+\usepackage{algorithmic}
+\usepackage{algorithm}
 
+% mathematical packages
+\usepackage{amsmath, amssymb, amsfonts}
+
+% math macros and adhocs
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\A}{\mathbb{A}}
+\DeclareMathOperator{\R}{\mathbb{R}}
+\DeclareMathOperator{\X}{\mathbb{X}}
+\DeclareMathOperator{\N}{\mathbb{N}}
+\DeclareMathOperator{\Q}{\mathbb{Q}}
+
+\DeclareMathOperator{\RR}{\mathcal{R}}
+
+\newcommand{\bP}{{\bar P}}
+\newcommand{\ts}{{\widetilde s}}
+\newcommand{\bs}{\bar s}
+
+
+\usepackage{epstopdf}
+\usepackage{blindtext}
+
+% todolist package
 \input{tools/textodos}
+
+% Theorems and co. environments setup
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
 
 
