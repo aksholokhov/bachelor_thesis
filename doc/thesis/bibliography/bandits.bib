@@ -10,7 +10,6 @@
 }
 
 @article{Szepesvari2010,
-abstract = {Reinforcement learning is a learning paradigm concerned with learning to control a system so as to maximize a numerical performance measure that expresses a long-term objective. What distinguishes reinforcement learning from supervised learning is that only partial feedback is given to the learner about the learner's predictions. Further, the predictions may have long term effects through influencing the future state of the controlled system. Thus, time plays a special role. The goal in reinforcement learning is to develop efficient learning algorithms, as well as to understand the algorithms' merits and limitations. Reinforcement learning is of great interest because of the large number of practical applications that it can be used to address, ranging from problems in artificial intelligence to operations research or control engineering. In this book, we focus on those algorithms of reinforcement learning that build on the powerful theory of dynamic programming. We give a fairly comprehensive catalog of learning problems, describe the core ideas, note a large number of state of the art algorithms, followed by the discussion of their theoretical properties and limitations.},
 author = {Szepesv{\'{a}}ri, Csaba},
 doi = {10.2200/S00268ED1V01Y201005AIM009},
 file = {:Users/aksholokhov/Documents/Papers/Szepesv{\'{a}}ri/2010/Synthesis Lectures on Artificial Intelligence and Machine Learning/Szepesv{\'{a}}ri - 2010 - Algorithms for Reinforcement Learning.pdf:pdf},
@@ -27,7 +26,6 @@ year = {2010}
 
 
 @article{Lai1985,
-abstract = {The authors consider multiarmed bandit problems with switching cost, define uniformly good allocation rules, and restrict attention to such rules. They present a lower bound on the asymptotic performance of uniformly good allocation rules and construct an allocation scheme that achieves the bound. It is found that despite the inclusion of a switching cost the proposed allocation scheme achieves the same asymptotic performance as the optimal rule for the bandit problem without switching cost. This is made possible by grouping together samples into blocks of increasing sizes, thereby reducing the number of switches to O(log {\textless}e1{\textgreater}n{\textless}/e1{\textgreater}). Finally, an optimal allocation scheme for a large class of distributions which includes members of the exponential family is illustrated},
 author = {Lai, T. L. and Robbins, Herbert},
 doi = {10.1016/0196-8858(85)90002-8},
 file = {:Users/aksholokhov/Documents/Papers/Lai, Robbins/1985/Advances in Applied Mathematics/Lai, Robbins - 1985 - Asymptotically efficient adaptive allocation rules.pdf:pdf},
@@ -43,7 +41,6 @@ year = {1985}
 }
 
 @article{Audibert2009,
-abstract = {Algorithms based on upper confidence bounds for balancing exploration and exploitation are gaining popularity since they are easy to implement, efficient and effective. This paper considers a variant of the basic algorithm for the stochastic, multi-armed bandit problem that takes into account the empirical variance of the different arms. In earlier experimental works, such algorithms were found to outperform the competing algorithms. We provide the first analysis of the expected regret for such algorithms. As expected, our results show that the algorithm that uses the variance estimates has a major advantage over its alternatives that do not use such estimates provided that the variances of the payoffs of the suboptimal arms are low. We also prove that the regret concentrates only at a polynomial rate. This holds for all the upper confidence bound based algorithms and for all bandit problems except those special ones where with probability one the payoff obtained by pulling the optimal arm is larger than the expected payoff for the second best arm. Hence, although upper confidence bound bandit algorithms achieve logarithmic expected regret rates, they might not be suitable for a risk-averse decision maker. We illustrate some of the results by computer simulations. {\textcopyright} 2009 Elsevier B.V. All rights reserved.},
 author = {Audibert, Jean Yves and Munos, R{\'{e}}mi and Szepesv{\'{a}}ri, Csaba},
 doi = {10.1016/j.tcs.2009.01.016},
 file = {:Users/aksholokhov/Documents/Papers/Audibert, Munos, Szepesv{\'{a}}ri/2009/Theoretical Computer Science/Audibert, Munos, Szepesv{\'{a}}ri - 2009 - Exploration-exploitation tradeoff using variance estimates in multi-armed bandits.pdf:pdf},
@@ -59,8 +56,44 @@ volume = {410},
 year = {2009}
 }
 
+@article{Papadimitriou1999,
+author = {Papadimitriou, Christos H. and Tsitsiklis, John N.},
+doi = {10.1287/moor.24.2.293},
+file = {:Users/aksholokhov/Documents/Papers/Unknown/2018/Unknown/Unknown - 2018 - The Complexity of Optimal Queuing Network Control Author ( s ) Christos H . Papadimitriou and John N . Tsitsiklis Publi.pdf:pdf},
+issn = {0364-765X},
+journal = {Mathematics of Operations Research},
+mendeley-groups = {Mathematics/Discrete Optimization/Packing Problems},
+month = {may},
+number = {2},
+pages = {293--305},
+title = {{The Complexity of Optimal Queuing Network Control}},
+url = {http://pubsonline.informs.org/doi/abs/10.1287/moor.24.2.293},
+volume = {24},
+year = {1999}
+}
+
+@article{Xia2015,
+author = {Xia, Yingce and Li, Haifang and Qin, Tao and Yu, Nenghai and Liu, Tie-yan},
+file = {:Users/aksholokhov/Documents/Papers/Xia et al/2015/Unknown/Xia et al. - 2015 - Thompson Sampling for Budgeted Multi-armed Bandits.pdf:pdf},
+keywords = {Special Track on Machine Learning},
+mendeley-groups = {Bandits/Bandits with Knapsacks},
+number = {IJCAI},
+pages = {3960--3966},
+title = {{Thompson Sampling for Budgeted Multi-armed Bandits}},
+year = {2015}
+}
+
+@article{Agrawal2014,
+author = {Agrawal, Shipra and Devanur, Nikhil R},
+file = {:Users/aksholokhov/Documents/Papers/Agrawal, Devanur/2014/Unknown/Agrawal, Devanur - 2014 - Bandits with Concave Rewards and Convex Knapsacks.pdf:pdf},
+isbn = {9781450325653},
+mendeley-groups = {Bandits/Bandits with Knapsacks},
+pages = {989--1006},
+title = {{Bandits with Concave Rewards and Convex Knapsacks}},
+year = {2014}
+}
+
 @inproceedings{Li2010,
-abstract = {Personalized web services strive to adapt their services (advertisements, news articles, etc) to individual users by making use of both content and user information. Despite a few recent advances, this problem remains challenging for at least two reasons. First, web service is featured with dynamically changing pools of content, rendering traditional collaborative filtering methods inapplicable. Second, the scale of most web services of practical interest calls for solutions that are both fast in learning and computation. In this work, we model personalized recommendation of news articles as a contextual bandit problem, a principled approach in which a learning algorithm sequentially selects articles to serve users based on contextual information about the users and articles, while simultaneously adapting its article-selection strategy based on user-click feedback to maximize total user clicks. The contributions of this work are three-fold. First, we propose a new, general contextual bandit algorithm that is computationally efficient and well motivated from learning theory. Second, we argue that any bandit algorithm can be reliably evaluated offline using previously recorded random traffic. Finally, using this offline evaluation method, we successfully applied our new algorithm to a Yahoo! Front Page Today Module dataset containing over 33 million events. Results showed a 12.5{\%} click lift compared to a standard context-free bandit algorithm, and the advantage becomes even greater when data gets more scarce.},
 address = {New York, New York, USA},
 archivePrefix = {arXiv},
 arxivId = {1003.0146},
@@ -92,8 +125,9 @@ title = {{Improved Algorithms for Linear Stochastic Bandits}},
 year = {2011}
 }
 
+
+
 @article{Agrawal2013,
-abstract = {Thompson Sampling is one of the oldest heuristics for multi-armed bandit problems. It is a randomized algorithm based on Bayesian ideas, and has recently generated significant interest after several studies demonstrated it to have better empirical performance compared to the state-of-the-art methods. However, many questions regarding its theoretical performance remained open. In this paper, we design and analyze a generalization of Thompson Sampling algorithm for the stochastic contextual multi-armed bandit problem with linear payoff functions, when the contexts are provided by an adaptive adversary. This is among the most important and widely studied versions of the contextual bandits problem. We provide the first theoretical guarantees for the contextual version of Thompson Sampling. We prove a high probability regret bound of {\$}\backslashtilde{\{}O{\}}(d{\^{}}{\{}3/2{\}}\backslashsqrt{\{}T{\}}){\$} (or {\$}\backslashtilde{\{}O{\}}(d\backslashsqrt{\{}T \backslashlog(N){\}}){\$}), which is the best regret bound achieved by any computationally efficient algorithm available for this problem in the current literature, and is within a factor of {\$}\backslashsqrt{\{}d{\}}{\$} (or {\$}\backslashsqrt{\{}\backslashlog(N){\}}{\$}) of the information-theoretic lower bound for this problem.},
 archivePrefix = {arXiv},
 arxivId = {1209.3352},
 author = {Agrawal, Shipra and Goyal, Navin},
@@ -110,7 +144,6 @@ year = {2013}
 }
 
 @article{Auer2003,
-abstract = {We show how a standard tool from statistics namely confidence bounds can be used to elegantly deal with situations which exhibit an exploitation-exploration trade-off. Our technique for designing and analyzing algorithms for such situations is general and can be applied when an algorithm has to make exploitation-versus-exploration decisions based on uncertain information provided by a random process. We apply our technique to two models with such an exploitation-exploration trade-off. For the adversarial bandit problem with shifting our new algorithm suffers only O((ST)1/2) regret with high probability over T trials with S shifts. Such a regret bound was previously known only in expectation. The second model we consider is associative reinforcement learning with linear value functions. For this model our technique improves the regret from O(T3/4) to O(T1/2).},
 author = {Auer, Peter},
 doi = {10.1162/153244303321897663},
 file = {:Users/aksholokhov/Documents/Papers/Auer/2003/Journal of Machine Learning Research/Auer - 2003 - Using Confidence Bounds for Exploitation-Exploration Trade-offs.pdf:pdf},
@@ -139,13 +172,19 @@ year = {2003}
     doi = {10.1109/PES.2011.6039082}
 }
 
-@article{Zhou2015ABandits,
-    title = {{A Survey on Contextual Multi-armed Bandits}},
-    year = {2015},
-    author = {Zhou, Li},
-    url = {http://arxiv.org/abs/1508.03326},
-    arxivId = {1508.03326}
+@article{Zhou2015,
+abstract = {In this survey we cover a few stochastic and adversarial contextual bandit algorithms. We analyze each algorithm's assumption and regret bound.},
+archivePrefix = {arXiv},
+arxivId = {1508.03326},
+author = {Zhou, Li},
+eprint = {1508.03326},
+file = {:Users/aksholokhov/Documents/Papers/Zhou/2015/Unknown/Zhou - 2015 - A Survey on Contextual Multi-armed Bandits.pdf:pdf},
+mendeley-groups = {Bandits/Contextual Bandits},
+title = {{A Survey on Contextual Multi-armed Bandits}},
+url = {http://arxiv.org/abs/1508.03326},
+year = {2015}
 }
+
 
 @book{Ghavamzadeh2015BayesianSurvey,
     title = {{Bayesian Reinforcement Learning: A Survey}},
@@ -226,35 +265,29 @@ year = {2003}
     keywords = {Aggregator, Demand response, Domestic energy resources, Flexible electricity demands, Load management, Smart grid}
 }
 
-@article{Trovato2015DemandValue,
-    title = {{Demand Response from Thermostatically Controlled Loads : Modelling , Control and System-Level Value}},
-    year = {2015},
-    journal = {Thesis{\_}Imperial college london},
-    author = {Trovato, Vincenzo},
-    number = {February}
-}
-
-@article{Auer2002,
-abstract = {Reinforcement learning policies face the exploration versus exploitation dilemma, i.e. the search for a balance between exploring the environment to find profitable actions while taking the empirically best action as often as possible. A popular measure of a policy's success in addressing this dilemma is the regret, that is the loss due to the fact that the globally optimal policy is not followed all the times. One of the simplest examples of the exploration/exploitation dilemma is the multi-armed bandit problem. Lai and Robbins were the first ones to show that the regret for this problem has to grow at least logarithmically in the number of plays. Since then, policies which asymptotically achieve this regret have been devised by Lai and Robbins and many others. In this work we showthat the optimal logarithmic regret is also achievable uniformly over time, with simple and efficient policies, and for all reward distributions with bounded support},
+@article{Auer2002b,
 archivePrefix = {arXiv},
-arxivId = {arXiv:1402.6028v1},
-author = {Auer, Peter and Cesa-Bianchi, Nicol{\`{o}} and Fischer, Paul},
-doi = {10.1023/A:1013689704352},
-eprint = {arXiv:1402.6028v1},
-file = {:Users/aksholokhov/Documents/Papers/Auer, Cesa-Bianchi, Fischer/2002/Machine Learning/Auer, Cesa-Bianchi, Fischer - 2002 - Finite-time Analysis of the Multiarmed Bandit Problem.pdf:pdf},
-isbn = {089871611X | 9780898716115},
-issn = {08856125},
-journal = {Machine Learning},
-keywords = {Campaign management support systems,Data handling,Data mining algorithms,Density based clustering,Evolving data streams,Multivariate anal,Predictive analytics,Predictive process,adaptive allocation rules,adaptive monte carlo,all or part of,back,bagged,bandit problems,bayesian inference,bayesian networks,c{\_}and{\_}e,cation,classi,click feed-,click-through-rate,collaborative learning,content-based learning,digital advertising,dual averaging,event discovery,event retrieval,exploitation and exploration,finite horizon regret,generalized pareto distribution,hamiltonian monte carlo,linear models,linear regression,locally weighted regression,markov chain monte carlo,markov models,model trees,models,monte carlo,multi-touch attribution model,naive bayes,neural networks,online advertising,or hard copies of,org entities,partial posterior predictive distribution,permission to make digital,regression,rule induction,schema,student{\_}modeling,tfidf-based,this work for,threshold selection,web events},
-mendeley-groups = {Mathematics/Machine learning/Reenforcement learning},
-number = {2/3},
-pages = {235--256},
-pmid = {18292226},
-title = {{Finite-time Analysis of the Multiarmed Bandit Problem}},
-url = {http://link.springer.com/article/10.1023/A:1020231107662{\%}5Cnhttp://link.springer.com/chapter/10.1007/3-540-70659-3{\_}2{\%}5Cnhttp://www.datashaping.com/ABbook5.pdf{\%}5Cnhttp://phyusdb.files.wordpress.com/2013/03/monte-carlo-methods-second-revised-and-enlarged-edition.pdf http://link.springer.com/10.1023/A:1013689704352},
-volume = {47},
+arxivId = {arXiv:1011.1669v3},
+author = {Auer, Peter and Cesa-Bianchi, Nicol{\`{o}} and Freund, Yoav and Schapire, Robert E.},
+doi = {10.1137/S0097539701398375},
+eprint = {arXiv:1011.1669v3},
+file = {:Users/aksholokhov/Documents/Papers/Auer et al/2002/SIAM Journal on Computing/Auer et al. - 2002 - The Nonstochastic Multiarmed Bandit Problem.pdf:pdf},
+isbn = {9788578110796},
+issn = {0097-5397},
+journal = {SIAM Journal on Computing},
+keywords = {1995,331,68q32 68t05 91a20,adversarial bandit problem,ams subject classification,an early extended abstract,in the proceedings of,of this paper appeared,on founda-,pages 322,the 36th annual symposium,tions of computer science,unknown matrix games},
+mendeley-groups = {Mathematics/Machine learning/Multiarmed Bandits},
+month = {jan},
+number = {1},
+pages = {48--77},
+pmid = {25246403},
+title = {{The Nonstochastic Multiarmed Bandit Problem}},
+url = {http://epubs.siam.org/doi/abs/10.1137/S0097539701398375 http://epubs.siam.org/doi/10.1137/S0097539701398375},
+volume = {32},
 year = {2002}
 }
+
+
 
 @inproceedings{Agrawal2015,
 abstract = {We consider the linear contextual bandit problem with resource consumption, in addition to reward generation. In each round, the outcome of pulling an arm is a reward as well as a vector of resource consumptions. The expected values of these outcomes depend linearly on the context of that arm. The budget/capacity constraints require that the total consumption doesn't exceed the budget for each resource. The objective is once again to maximize the total reward. This problem turns out to be a common generalization of classic linear contextual bandits (linContextual), bandits with knapsacks (BwK), and the online stochastic packing problem (OSPP). We present algorithms with near-optimal regret bounds for this problem. Our bounds compare favorably to results on the unstructured version of the problem where the relation between the contexts and the outcomes could be arbitrary, but the algorithm only competes against a fixed set of policies accessible through an optimization oracle. We combine techniques from the work on linContextual, BwK, and OSPP in a nontrivial manner while also tackling new difficulties that are not present in any of these special cases.},

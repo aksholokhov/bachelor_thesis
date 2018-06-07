@@ -1,18 +1,67 @@
 
 \section{Multiarmed Bandits}
-Reinforcement learning can be defined as a learning paradigm concerned with learning to control a complex system so to maximize a numerical performance measure that express some long-term objective \cite{Szepesvari2010}. The most typical setting where reinforcement learning operates is an iterative process of agent-environment interactions (see fig \textit{somefig}). Formally, at the moment $t$ the agent performs an action $a_t$ according to his current policy $\pi_t$ and gets a reward $r_t$ from the environment. The aim of the agent is to maximize the reward $\sum_{t = t_0}^{t_0 + T}r_t$ in a given time horizon $T$, or, equally, to minimize the regret $\bar{R_T} = R^x*_T - \sum_{t = t_0}^{t_0 + T}r_t$ where $R^*_T$ is the best reward the agent can theoretically get with the best policy $\pi^*$ available. However, in most of the real problem we have some additional information associated with each arm or with the situation in general. The vector that represents this information is usually called <<the context>> hence the related setup is called <<contextual multi armed bandit>>. Under the described conditions the agent should take into account the context to achieve better performance. 
+According to \cite{Szepesvari2010}: 
+
+\begin{definition}Reinforcement Learning is a learning paradigm concerned with learning to control a complex system so to maximize a numerical performance measure that express some long-term objective.    
+\end{definition}
+
+ The amount of papers devoted to Reinforcement Learning has soared up recent years due to significant advances in various domains, such as robotics, medical trials, adversarial games and recommendation systems.
+
+ The most typical setting where reinforcement learning operates is an iterative process of agent-environment interactions. Formally, let us use the following notation. Define the set of possible agent's actions $a$ as $\A = \{a_1, \dots, a_m \}$, the reward $r \in \R_{+}$, the state of the environment $Q \in \Q$, the time $t \in [0, 1 \dots, T] \subseteq \N$ and the context vector as some vector $x \in \X \subseteq R^k$. In addition, let the policy $$\nu:\Q \times \X \times \N \to \A$$ be some function that maps current knowledge on the environment to the set of actions. The most general RL process may be described as below. At the moment $t$, after taking into consideration the current context $x_t$ and state of the environment $Q_t$ the agent performs an action $a_t$ according to his current policy $\nu_t$. Next, the environment samples a reward $r_t$ and a context $x_t$ from some unknown distribution $\pi(x,r|a)$, and change its state from $Q_t$ to $Q_{t+1}$ according some unknown Markov Decision Rule $M:\, Q \times Q \to [0, 1]$. (see fig \todo{Scheme for RL}). The aim of the agent is to minimise the regret ${\cal R}^\nu_T$ defined as the difference between performances under the best policy available and under some policy $\nu$:
  
-Multiarmed bandit problem can be defined as a Reinforcement Learning setup with a fixed state of the environment, so the problem here is to learn the best policy. 
+$$
+        {\cal R}^\nu_T = \sum_{t=1}^T(r^*(t) - r^{\nu}(t))
+$$
+ 
+  Multi-armed bandit problem can be defined as a Reinforcement Learning setup with a fixed state of the environment. If the context $x$ is absent, then such setup is called <<context-free MAB>>, and <<contextual MAB>> otherwise. 
+  
+  \subsection{Context-free Multiarmed Bandits}
+  Variety of papers published in recent 20 years is devoted to the general context-free multi armed bandit setup. One of the first algorithms -- $\varepsilon$-greedy -- was proposed by \cite{Auer2002}: it pulls an arbitrary arm with a probability of $\varepsilon$ and the best arm according to the current policy otherwise. This is due to the exploration-exploitation balance problem: without this arbitrary steps the agent may fail to gain enough statistics for determining the best policy. However, $\varepsilon$ is a hyperparameter which should be appropriately tuned. Another approach here is so-called <<optimism in the face of uncertainty>> \cite{Lai1985} according to which the learner should choose an arm with the best Upper Confidence Bound. A well known algorithm which has implemented this technique is UCB1 \cite{Auer2002}, later analysed and improved by \cite{Audibert2009}. The later not only often outperforms UCB1, but also had shown to be essentially unimprovable under the assumption that the variance of the reward associated with some of the actions are small.
+  
+  \subsection{Contextual Multiarmed Bandits}
+  When the context is available, the agent may take it into consideration while learning the optimal policy. The finite-context case (when the set of possible contexts is finite) was examined by \cite{Auer2002b}, who proposed to consider these set of context as a set $\Q$ of the environment state and then apply previous reinforcement learning algorithms, such EXP3. 
+  
+  In contrast to the regular bandit problem, the contextual bandit setup tends to be tougher problem to solve. One approach is to assume the particular dependency model between the arms' context $x_{a,t}$ and the expected reward $r_t$. So, the next important class of contextual bandits is so-called linear contextual bandits, which are the setups where the following assumption holds:
+  
+  \begin{definition}
+      Linear Realisability Assumption: there is a unknown vector $\theta^* \in \R^k$, such that: 
+        \begin{equation*}
+                r_{t,a} = \E\left[r_{t,a}|x_{t,a}\right] + \varepsilon_t, \quad s.t. \,\E\left[r_{t,a}|x_{t,a}\right] = x_{t,a}^T\theta^*,\, \varepsilon \sim \N(0, \sigma^2)
+        \end{equation*}  
+        where $x_{t,a}$ is a context vector for arm $a$.
+  \end{definition}
+  There are at least two distinguish approaches of dealing with this setup. The first one was an adaptation of UCB1 approach: LinUCB \cite{Li2010}, which tackles optimisation subroutine on $\theta$ as a ridge regression. Later \cite{Abbasi-Yadkori2011} provided better theoretical analysis for this algorithm by eliminating the assumption that the reward is identically distributed over time and arms, which is usually far from true. The similar case with different regularisation strategy was examined by \cite{Auer2003}. Another approach is to adapt Thompson Sapling technique \cite{Li2011} for balancing exploration and exploitation to the linear reward model. It was done by \cite{Agrawal2013}. This particular linear contextual bandit setup is widely used later in this study. For further information on contextual bandit problems one is recommended to examine \cite{Zhou2015}
+  
+  \subsection{Multiarmed Bandits with Knapsack}
+  In real life, while learning, the agent may consume one or more supply of budgeted resources, limits on which are usually known beforehand. For example, in experimental medical trials possibility of treatment depends on the total amount of meds available. Another example is showing advertisements which is constrained not only by the number of users but by the client's advertisement budget of as well. 
+  
+  According to \cite{Badanidiyuru2013}, the formal problem setup for this case is the following: over a sequence of steps the agent choose an action $a_t$ and observes not only the reward $r_t$ but also a resource consumption vector $d \in R^d$, where $i$-th component $d^i$ represents a consumption of $i$-th resource. For each resource $d^i$ there is a pre-specified budget $B_i$, known for the agent. The process stops at the moment $T$ when for some $i$ $\sum_{t=0}^Td^i_t > B_i$ or when the time horizon is reached. Note that in this setup the time horizon $T$ is considered as a resource with a budget $T$ and a unit consumption on each step independently on actions being performed.
+  
+  The Bandit with Knapsack (BwK) problem turns to be significantly more challenging than the conventional MAB setup as the agent needs to solve the stochastic multidimensional version of the Knapsack problem. Such limitation dramatically affects the optimal strategy for the agent, which is more complex in comparison to the "best-arm" strategy for classical MAB. In particular, \cite{Papadimitriou1999} showed that even with knowledge on all latent distribution the problem of revealing the best policy remains at least P-SPACE hard. Hence, the regret is generally uncomputable in such problems as we do not know the best policy. 
+  
+  Two algorithms for the most general BwK setup was proposed by \cite{Badanidiyuru2013}: \textit{PrimalDualBwK} and \textit{BalancedExploration}. Both of them utilise upper confidence bounds design principles and experience sublinear regret. The BwK adaptation of Thompson Sampling technique was introduced by \cite{Xia2015}, and the case of "convex knapsacks" was examined by \cite{Agrawal2014}. The linear contextual BwK setup (linCBwK) was investigated by \cite{Agrawal2015}. As we will use this setup later in this study, let us consider it in details.
+  
+  \begin{definition} \textbf{linCBwK \cite{Agrawal2015}}:
+      There are $m$ "arms" $\{a_i\}_{i=1}^m$. Let $B$ be the budget. In each round the agent observes context vectors $x_{a,t} \in \R^k$ for each arm $a$, chooses some action $a_t$ and observes a reward $r_t \in [0, 1]$ and a consumption vector $d_t \in [0,1]^d$. Also the decision maker may always choose a "no-action" option in order to get 0 reward and \textbf{0} consumption. In each round the a tuple $\{x_{a,t}, r_t, d_t\}$ is sampled from unknown distribution $D$ independent on everything before. Assume that there exist an unknown vector $\theta^* \in [0,1]^k$ and a matrix $W^* \in [0,1]^{k \times d}$ such that for all arms $a$ given the context $x_{a,t}$ and history $H_{t-1}$,
+      \[
+        \E\left[r_t|a, x_{t,a}, H_{t-1}\right] = \theta^{*T}x_{a,t}, \quad \E\left[d_{t}|x_{a,t}, H_{t-1} \right]
+      \]
+      Define the regret $\RR_T$ in $T$ rounds as 
+      \[
+        \RR_T := OPT - \sum_{t=1}^T r_t
+      \]
+      where OPT is the expected reward under the best static policy avaliable. 
+      
+      The goal of the agent in linCBwK is to minimise the regret or, equally, to maximise the reward. 
+      
+  \end{definition} 
 
-The amount of papers devoted to Reinforcement Learning has soared up recent years due to significant advances in \textit{some domains (link)}.
+The learning algorithm (henceforth libCBwK-learning) for this case was proposed by \cite{Agrawal2015}. It is used high confidence estimations for unknown parameters $\theta^*$ and $W^*$ (so called "confidence ellipsoids") which is a well known and widely used approach in developing RL algorithms (e.g. see \cite{Auer2003}). It was also proven to have near-optimal regret bounds:
 
-Plenty of papers is devoted to the general multi armed bandit setup. One of the most famous algorithms -- $\varepsilon$-greedy -- was proposed by \cite{Auer2002}: it pulls an arbitrary arm with a probability of $\varepsilon$ and the best arm according to the current policy otherwise. This is due tho the exploration-exploitation balance problem: without this arbitrary steps the agent may fail to gain enough statistics for determining the best policy. However, $\varepsilon$ is a hyperparameter which should be appropriately tuned. Another approach here is so-called <<optimism in the face of uncertainty>> \cite{Lai1985} according to which the learner should choose an arm with the best Upper Confidence Bound. A very successful algorithm which has implemented this technique is UCB1 \cite{Auer2002}, later analysed and improved by \cite{Audibert2009}. The later not only often outperforms UCB1, but also had shown to be essentially unimprovable under the assumption that the variance of the reward associated with some of the actions are small.
-
-In contrast to the regular bandit problem, the contextual bandit setup tends to be tougher problem to solve. One approach is to assume the particular dependency model between the arms' context $x_{a,t}$ and the expected reward $r_t$. One possible model is a linear one: \begin{align}
-        &\label{eq:reward_linear_assumption}
-        r_{a,t} = \bar{r_{a,t}} + \varepsilon_{a,t} \\
-        s.t.\, & \bar{r_{a,t}}  = \E[r_{t,a}|x_{t,a}] = x_{t,a}^T\theta^* \\
-        & \E \varepsilon_{a,t}  = 0 
-    \end{align}
+\begin{theorem} (Agrawal 2015) If $B > k^{1/2}T^{3/4}$ then with probability at least $1-\delta$ 
+\[
+    \RR_T = O\left((\frac{OPT}{B} + 1)k\sqrt{T\log(dT/\delta)\log(T)}\right)
+\]  
+    One may see linCBwK-learning algorithm's pseudocode in \todo{Add appendix on linCBwK}. 
     
-    For this linear case \cite{Li2010} proposed an adaptation of UCB1 approach: LinUCB. Later \cite{Abbasi-Yadkori2011} provided better theoretical analysis by eliminating the assumption that the reward is identically distributed over time and arms, which is mostly far from true. The similar case with different regularization strategy was examined by \cite{Auer2003}. Another heuristics for balancing exploration and exploitation is known as Thompson Sapling was adapted to the linear reward model by \cite{Agrawal2013}. 
+\end{theorem}
