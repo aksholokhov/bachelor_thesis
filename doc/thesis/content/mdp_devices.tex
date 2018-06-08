@@ -1,0 +1,19 @@
+\section{Markov Chain Modelling of Loads}
+
+A common approach of dealing with uncertainty in Demand-Response is to model loads as Markov Chains (MCs). The viability of such models by many researchers. Firstly, a detailed survey on modelling of TCLs with MCs was conducted by \cite{Koch2011}, where a significant precision of such models was demonstrated in experiment. Secondly, in \cite{Trovato2015} an ensemble of refrigerators was modelled by MCs. And, finally, \cite{Wu2016} was introduced such models for Plug-in Electric Vehicles. This approach is widely used in DR programs when the aggregator lacks of communication infrastructure, especially in case of ensemble control approach \cite{Chertkov2017}. 
+
+To provide some intuition let us give a simple example of such modelling. Consider an ideal air heater, which has three working modes: no heating ($Q_0$), moderate heating ($Q_1$) and maximum heating ($Q_2$) with an energy consumption vector $\widetilde{q} = [q_1, q_2, q_3] \in R^3$ for these modes respectively. Suppose that Air Heater moves from one mode to another according to some fixed transition matrix $P \in \R^{3 \times 3}$ of an ergodic Markov chain. (see fig\todo{add P fig and ref}). It is easy to see that the average heat stream from this heater will be $q^Tu$, where $u_P$ is a unit eigenvector of the matrix $P$. Within a short period when the outdoor temperature is fixed, due to the heat balance equations, it leads to some fixed indoor temperature $t$. Hence, each behaviour model $P$ defines average energy consumption and mean indoor temperature for each room. In the figure \ref{fig:matrices_example} one may see two different control matrices $P_1$ and $P_2$ representing two different behaviour models. 
+
+\begin{figure}
+    \centering
+    \tikz[scale=3]{
+        \begin{scope}[nodes={draw, ultra thick}]
+            \node (agent) [rounded rectangle] {Agent};
+            \node (environment) [right = of agent, rounded rectangle] {Environment};
+        \end{scope}
+        \path[->]
+            (agent) edge [bend left] node [above] {$a_t$} (environment)
+            (environment) edge [bend left] node [below] {$r_t, \, x_{t+1}, Q_{t+1}$} (agent); 
+    }
+    \label{fig:matrices_example}
+\end{figure} 
