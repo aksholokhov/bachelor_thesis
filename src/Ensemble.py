@@ -3,6 +3,7 @@ from threading import Lock
 from random import Random
 import numpy as np
 from scipy.optimize import minimize
+from numpy.linalg import matrix_power
 
 class AirConditioningEnsemble:
 
@@ -177,7 +178,7 @@ class ThermalDevice:
         if policy == 0:
             is_accept = 0
         else:
-            is_accept = self.__room_model.accept(self.__time, policy-1, self.__policy)
+            is_accept = self.__room_model.accept_func(policy-1, self.__policy, self.__time)
             if is_accept:
                 self.__policy = policy-1
 
@@ -207,29 +208,59 @@ def eiv(P):
     stationary = stationary / np.sum(stationary)
     return np.real(stationary)
 
+def generate_features(pi, room_model, arm, t):
+    if arm == 0:
+        return [sum([room_model.q.T.dot(matrix_power(control.T, i).dot(pi)) for i in range(1, room_model.tau+1)])
+                for control in room_model.controls]
+    else:
+        features = []
+        for j, control in enumerate(room_model.controls):
+            P = room_model.controls[arm-1] if room_model.accept_func(arm-1, j, t) else control
+            k = sum([room_model.q.T.dot(matrix_power(P.T, i).dot(pi)) for i in range(1, room_model.tau+1)])
+            features.append(k)
+        return features
+
+def generate_omega_features(pi, room_model, n, arm):
+    P_i = room_model.controls[arm-1]
+    features = []
+    for P_j, n_j in zip(room_model.controls, n):
+        k = sum([n_j*room_model.q.T.dot((matrix_power(P_i.T, xi) - matrix_power(P_j.T, xi)).dot(pi)) for xi in range(1, room_model.tau + 1)])
+        features.append(k)
+    return np.array(features)
+
 
 def learn_regression(X, y, n):
     m = X.shape[1]
     f = lambda w: np.linalg.norm(X.dot(w) - y)**2
-    jac = lambda w: 2*X.T.dot(X.dot(w) - y)
     cons = {'type' : 'eq', 'fun' : lambda x: sum(x) - n}
     bounds = tuple([(0, None) for _ in range(m)])
     res = minimize(f, np.zeros(m).reshape(-1, 1), constraints=cons, bounds=bounds)
     return res.x
 
+def learn_omega(X, y):
+    m = X.shape[1]
+    f = lambda w: np.linalg.norm(X.dot(w) - y) ** 2
+    bounds = tuple([(0, 1) for _ in range(m)])
+    res = minimize(f, np.zeros(m).reshape(-1, 1), bounds=bounds)
+    return res.x
+
 class RoomModel:
 
-    def __init__(self, environment_temp, controls, q, tau, user_profile):
+    def __init__(self, environment_temp, controls, q, tau, user_profile, omega_is_known):
         self.__c = environment_temp
         self.controls = controls
         self.N = controls[0].shape[0]
         self.user_profile = user_profile
         self.q = q
         self.tau = tau # thermal_coefficient * tau ~= 4 -- works good
-        self.__thermal_coefficient = lambda t: 1
+        self.__thermal_coefficient = lambda t: 1.2
         self.temps = lambda t: [environment_temp(t) + self.tau*self.__thermal_coefficient(t) * q.T.dot(eiv(x)) for x in controls]
-        self.accept = lambda t, i, j: np.abs(self.temps(t)[i] - self.temps(t)[j]) < 2 and self.temps(t)[i] > 17 and self.temps(t)[i] < 26
-
+        self.accept_func = lambda i, j, t: np.abs(self.temps(t)[i] - self.temps(t)[j]) < 3 and self.temps(t)[i] >= 17 and self.temps(t)[i] <= 26
+        if omega_is_known:
+            self.accept = np.array([[[self.accept_func(i, j, t)
+                                for t in range(24)]
+                                     for j in range(len(controls))]
+                                        for i in range(len(controls))])
 
 
 class SystemOperator:
@@ -243,16 +274,9 @@ class SystemOperator:
 
     def send_consumption(self, consumption):
         self.__last_consumption = consumption
-        self.__time = (self.__time + 1) % 24
-        if self.__last_consumption*self.__gen_price(self.__time) > self.__consumption_threshold:
-            next_hour = (self.__time + 1) % 24
-            self.__target = self.__consumption_threshold/self.__gen_price(next_hour)
-            self.__target_delay = 3
-        else:
-            if self.__target_delay > 0:
-                self.__target_delay -= 1
-            else:
-                self.__target = 0
+        next_hour = (self.__time + 1) % 24
+        self.__target = self.__consumption_threshold #self.__consumption_threshold/self.__gen_price(next_hour)
+        self.__time = next_hour
 
     def get_target(self):
         return self.__target
