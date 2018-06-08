@@ -7,11 +7,26 @@ According to \cite{Szepesvari2010}:
 
  The amount of papers devoted to Reinforcement Learning has soared up recent years due to significant advances in various domains, such as robotics, medical trials, adversarial games and recommendation systems.
 
- The most typical setting where reinforcement learning operates is an iterative process of agent-environment interactions. Formally, let us use the following notation. Define the set of possible agent's actions $a$ as $\A = \{a_1, \dots, a_m \}$, the reward $r \in \R_{+}$, the state of the environment $Q \in \Q$, the time $t \in [0, 1 \dots, T] \subseteq \N$ and the context vector as some vector $x \in \X \subseteq R^k$. In addition, let the policy $$\nu:\Q \times \X \times \N \to \A$$ be some function that maps current knowledge on the environment to the set of actions. The most general RL process may be described as below. At the moment $t$, after taking into consideration the current context $x_t$ and state of the environment $Q_t$ the agent performs an action $a_t$ according to his current policy $\nu_t$. Next, the environment samples a reward $r_t$ and a context $x_t$ from some unknown distribution $\pi(x,r|a)$, and change its state from $Q_t$ to $Q_{t+1}$ according some unknown Markov Decision Rule $M:\, Q \times Q \to [0, 1]$. (see fig \todo{Scheme for RL}). The aim of the agent is to minimise the regret ${\cal R}^\nu_T$ defined as the difference between performances under the best policy available and under some policy $\nu$:
+ The most typical setting where reinforcement learning operates is an iterative process of agent-environment interactions. Formally, let us use the following notation. Define the set of possible agent's actions $a$ as $\A = \{a_1, \dots, a_m \}$, the reward $r \in \R_{+}$, the state of the environment $Q \in \Q$, the time $t \in [0, 1 \dots, T] \subseteq \N$ and the context vector as some vector $x \in \X \subseteq R^k$. In addition, let the policy $$\nu:\Q \times \X \times \N \to \A$$ be some function that maps current knowledge on the environment to the set of actions. The most general RL process may be described as below. At the moment $t$, after taking into consideration the current context $x_t$ and state of the environment $Q_t$ the agent performs an action $a_t$ according to his current policy $\nu_t$. Next, the environment samples a reward $r_t$ and a context $x_t$ from some unknown distribution $\pi(x,r|a)$, and change its state from $Q_t$ to $Q_{t+1}$ according some unknown Markov Decision Rule $M:\, Q \times Q \to [0, 1]$. (see fig \ref{fig:MAB_scheme}). The aim of the agent is to minimise the regret ${\cal R}^\nu_T$ defined as the difference between performances under the best policy available and under some policy $\nu$:
  
 $$
         {\cal R}^\nu_T = \sum_{t=1}^T(r^*(t) - r^{\nu}(t))
 $$
+ 
+\begin{figure}
+    \centering
+    \label{fig:MAB_scheme}
+    \tikz[scale=3]{
+        \begin{scope}[nodes={draw, ultra thick}]
+            \node (agent) [rounded rectangle] {Agent};
+            \node (environment) [right = of agent, rounded rectangle] {Environment};
+        \end{scope}
+        \path[->]
+            (agent) edge [bend left] node [above] {$a_t$} (environment)
+            (environment) edge [bend left] node [below] {$r_t, \, x_{t+1}, Q_{t+1}$} (agent); 
+    }
+    \caption{Agent-environment interaction}
+\end{figure}
  
   Multi-armed bandit problem can be defined as a Reinforcement Learning setup with a fixed state of the environment. If the context $x$ is absent, then such setup is called <<context-free MAB>>, and <<contextual MAB>> otherwise. 
   
