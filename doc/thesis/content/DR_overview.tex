@@ -11,7 +11,29 @@ One of the distinguishing features of Smart Grid networks is demand manageabilit
 
 Amount of DR service providers (also know as Aggregators) in US energy market soared up recent years due to emerging new intelligent solution and overall market liberalisation \todo{is it true?} \todo{Add citation}. A typical aggregator company represents several thousand households or a few dozens of commercial consumers (e.g. downtown office buildings). \todo{some statistics} One of the most typical aggregator's business models is providing the curtailment of its customers' demand according to city's energy system operator's requests.      
 
-As shown in figure \todo{insert RD scheme} the principal DR-scheme consists of cooperation of four main participants: a) an Aggregator, b) a System Operator (SO), c) Power Generation Unit(s) d) and Power Consumer(s) \cite{Medina2010}. Their interaction is a cyclic process typically started by the SO, which determines the preferred power consumption and sends it to the Aggregator. Next the Aggregator chooses participating loads from available, calculates possible change in demand and sends it back to the SO. And finally the Operator informs the most available substations about the upcoming demand. In such scheme the Aggregator provides the grid's intelligence executing optimisation procedures pr revealing problems in distribution system \cite{Vardakas2015}. 
+As shown in figure \ref{fig:DR_scheme}, the principal DR-scheme consists of cooperation of four main participants: a) an Aggregator, b) a System Operator (SO), c) Power Generation Unit(s) d) and Power Consumer(s) \cite{Medina2010}. Their interaction is a cyclic process typically started by the SO, which determines the preferred power consumption and sends it to the Aggregator. Next the Aggregator chooses participating loads from available, calculates possible change in demand and sends it back to the SO. And finally the Operator informs the most available substations about the upcoming demand. In such scheme the Aggregator provides the grid's intelligence executing optimisation procedures pr revealing problems in distribution system \cite{Vardakas2015}. 
+
+\begin{figure}
+\centering
+\tikz[scale=3,node distance = 4cm]{
+    \begin{scope}[nodes={draw, ultra thick}]
+        \node (so) [rounded rectangle] {System Operator};
+        \node (a) [right = of so, rounded rectangle] {Aggregator};
+        \node (g) [below = of a, rounded rectangle] {Sub stantions};
+        \node (e) [right = of a, rounded rectangle] {Consumers};
+        
+    \end{scope}
+    \path[->]
+        (so) edge [bend left] node [align=center] {(1) desired \\ cons.} (a)
+        (a) edge [bend left] node [align=center] {(2) predicted \\ cons.} (so)
+        (a) edge [bend left] node [align=center] {(2) control \\ signal} (e)
+        (e) edge [bend left] node [align=center] {(3) actual \\ cons.} (a)
+        (e) edge [bend left] node [align=center, sloped] {(3) actual \\ cons.} (g)
+        (so) edge [bend right] node [align=center, sloped] {(3) predicted \\ cons.} (g);
+}
+    \caption{Demand-Response Scheme}
+    \label{fig:DR_scheme}
+\end{figure}
 
 DR Schemes distinct in control architecture they utilise, and in motivation to participate which they provide to customers \todo{classification scheme}.
 
