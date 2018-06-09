@@ -3,7 +3,7 @@
 \begin{definition}
     Thermostatically Controlled Loads (TCLs) is a type of loads who cycles through multiple stages according to the temperature of its subject of control.
 \end{definition}
- This group includes water heaters, refrigerators, air conditioning systems, warm floors and many others. According to \cite{EIA2009}, a bit less than 50\% of energy in residential energy markets of USA is consumed by TCLs (see \ref{fig:energy_consumption_in_usa}).
+ This group includes water heaters, refrigerators, air conditioning systems, warm floors and many others. According to \cite{EIA2009}, a bit less than 50\% of energy in residential energy markets of USA is consumed by TCLs (see fig. \ref{fig:energy_consumption_in_usa}).
 
 \begin{figure}
     \centering
@@ -12,11 +12,11 @@
     \caption{Residential energy consumption structure in United States, 2015}
 \end{figure}
 
-TCLs appear to be excellent candidates candidates for participating in DR programs for at least three reasons:
+TCLs appear to be excellent candidates for participating in DR programs for at least four reasons:
 
 \begin{enumerate}
-    \item Insensitivity to short-term offs. 
-    \item Descriptability by Markov Decision Processes
+    \item Insensitivity to short-term offs. As they naturally store energy in water tanks, short-term power outages almost do not affect consumers comfort.
+    \item Descriptability by Markov Decision Processes. As was shown in \cite{Taylor2014, Chertkov2017}, such devices are naturally fit to Markov models due to the nature of physical process underlying their work.
     \item Availability in the majority of residential and commercial premises. 
-    \item A big share of consumed energy.
+    \item A big share of consumed energy (see \ref{fig:energy_consumption_in_usa}).
 \end{enumerate}
