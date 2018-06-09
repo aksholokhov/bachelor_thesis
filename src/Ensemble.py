@@ -275,7 +275,7 @@ class SystemOperator:
     def send_consumption(self, consumption):
         self.__last_consumption = consumption
         next_hour = (self.__time + 1) % 24
-        self.__target = self.__consumption_threshold #self.__consumption_threshold/self.__gen_price(next_hour)
+        self.__target = 0 if (next_hour < 13 or next_hour > 22) else self.__consumption_threshold   #self.__consumption_threshold/self.__gen_price(next_hour)
         self.__time = next_hour
 
     def get_target(self):
