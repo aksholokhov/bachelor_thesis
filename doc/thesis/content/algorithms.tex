@@ -28,7 +28,7 @@ This algorithm unites UCB approach with Online Stochastic Packing Problem. It us
 
 As we do not modify the original algorithm, we do not put the pseudocode here. To obtain it, one may address \cite{Badanidiyuru2013}. 
 
-\subsection{linCBwK}
+\subsection{linCBwK-m}
 
 In the following section we treat \ref{eq:minimisation_setup} as a linear contextual bandit with knapsack problem (see \ref{def:lincbwk_setup}). In this form of bandits setup we face two major troubles: 
 
@@ -98,112 +98,106 @@ as well as for stabilisation setup \ref{eq:stabilisation_setup}
 
 By now $n(t)$ is an unknown time series, and to the best of our knowledge there are no general BwK algorithms for such setup. Hence, we assume that $n(t)$ is a periodic function over time with a period of 24 hours (at least within one season of a year), so we can consider \ref{eq:minimization_bandit_setup} and \ref{eq:stabilization_bandit_setup} as a set of 24 bandits: each one is learning to make a decision at the assigned hour. Note that these problems are in exact form for recently emerged budgeted bandit solvers (\cite{Agrawal2015}), and all the requirements are met: the divergence between predicted and modelled consumption may appear only regarding to stochastic fluctuations due to the finiteness of the ensemble, hence we have independence of reward as a function of a context through arms and time. 
 
+The pseudocode of the algorithm is shown in alg \ref{algo:linCBwK-m}. In its design two concepts were used: Multiplicative Online Learning and Confidence Ellipsoid Parameters Estimation:
 
-\paragraph{The Algorithm with known $\Omega_{ij}(t)$ and without a knapsack:} Consider a simpler setup when $K = \infty$ i.e. we have no knapsack constraints in our problem. Here $\tau$ is the number of steps which a device performs each hour. We also assume that we do not know neither an initial state distribution $\pi(0)$ nor $n_j(t)$. In this case \ref{algo:simple} is how a dummy algorithm may look like (we assume here a \ref{eq:stabilization_loss} loss function).
-
-\begin{algorithm}
-\caption{Non-budgeted TCL-control with oracle}
-\label{algo:simple}
-\begin{algorithmic}[1]
-\REQUIRE{${\cal P},\, n,\, \tau, \Omega_{ij}(t)$}
-\STATE{$n_i(0) := 1/n\, \forall i$}
-\STATE{$\pi_0 := \frac{1}{n}\sum_{i=1}^mn_i(0)u_i$, where $u_i$ is a stationary distribution of the matrix $P_i$}
-\STATE{$A(t) = \{\emptyset\} \, \forall t$ where A(t) is an array of all feature vectors through time which we got at the hour $t$. It will be used as a learning dataset for the $t$-th regressor.}
-\STATE{$S(t) =  \{\emptyset\} \, \forall t$ where S(t) is an array of all s(t) through time which we got at the hour $t$. These are the targets for the $t$-th regressor.}
-\FOR{$t := 1\dots T$}
-    \STATE{Generate the arm contexts $\{f_j(t|i)\}_{j=1}^{m}$ for all $i \in \{0, 1\dots m\}$}:
-    \STATE{$f_j(t|i) := \sum_{\xi = 1}^\tau q^T(\Omega_{ij}(t)P^{\xi}_i + (1-\Omega_{ij}(t))P^{\xi}_j)\pi(t)\quad i \in \{1\dots m\}$}
-    \STATE{$f_j(t|0) := \sum_{\xi = 1}^\tau q^TP^{\tau}_j\pi(t)$}
-    \IF{$\bs(t) == 0$}
-        \STATE{Set $i := 0$ (no control) and send it to the ensemble}
-    \ELSE
-        \STATE{$i := \arg\max_{i\in \{1 \dots m\}} {\cal L}_t(s(t|i)) := \arg\max_{i\in \{1 \dots m\}}{\cal L}_t(n(t)^Tf(t|i))$}.
-        \STATE{Send the chosen arm $i$ to the ensemble}
-    \ENDIF
-    \STATE{Wait and receive $s(t|i)$ -- the actual ensemble consumption}
-        \STATE{$A(t)$.append($f(t|i)$)}
-        \STATE{$S(t)$.append($s(t|i)$)}
-        \STATE{Solve a constrained regression problem to learn real $n_j(t)$:}
-        \STATE{$n(t) = \arg \min_{n \in R^n_+} \|A(t)n(t) - S(t)\|^2, \, s.t. \sum_{j=1}^m n_j(t) = n,\, n_j(t) \geq 0,\, \text{start from } n(t)$}
-        \STATE{Calculate next $\pi$:}
-        \STATE{$\pi(t+1) = \frac{1}{n}\sum_{j=1}^mn_j(t)(\Omega_{ij}(t)P^{\tau}_i + (1-\Omega_{ij}(t))P^{\tau}_j))\pi(t)$}
-        \IF{$n_j(t+1)$ are undefined yet}
-            \STATE{$n_j(t+1) = n_j(t)$}
-        \ENDIF
-\ENDFOR
-\end{algorithmic}
+\paragraph{Confidence Ellipsiod} 
+This approach is a common way for deriving upper and lower confidence bounds for unknown vector parameters in linear MABs \cite{Li2011}. The first corollary of the following theorem was proven in \cite{Auer2003}, the second one -- in \cite{Abbasi-Yadkori2011}.  
+\begin{theorem}
+\label{theorem:ellipsoids}
+    Suppose there is some unknown distribution $p(r_t, x_t)$ of pairs $(r_t, x_t)$, where $r_t$ linearly depends on $x_t \in \R^m$ with some zero-mean noise: 
+    \[
+        r_t = \mu^Tx_t + \nu_t\quad s.t. \, \E[\nu|H_{t-1}] = 0, \, |\nu| \leq R
+    \]
+    where $\mu \in R^m$ is some unknown parameter which one wants to estimate, $H_{t}$ is the history up to time $t$. 
     
-\end{algorithm}
+    Define a sequence of matrices $M_t \in \R^{m \times m}$ 
+    \[
+        M_t := \lambda I + \sum_{\tau = 0}^{t-1}x_\tau x_\tau^T
+    \]
+    Then, with a probability $\delta$ two following statements hold:
+    
+    \begin{enumerate}
+        \item $\sum_{t=1}^T\|x_t\|_{M_t^{-1}} \leq \sqrt{mT\log{T}}$ where $\|x\|_M := \sqrt{x^TMx}$
+        \item $\mu \in C_t$ where 
+            \begin{equation*}
+            \label{eq:confidential_ellipsoid}
+            \begin{split}
+                C_t & := \{\mu \in \R^m\, : \, \|\mu - \hat{\mu}\|_{M_t} \leq \frac{R}{2}\sqrt{m\log\left(\frac{1+tm/\lambda}{\delta}\right)} + \sqrt{\lambda m}\} \\
+                \hat{\mu_t} & := M^{-1}_t\sum_{\tau = 1}^{t-1}x_ir_i \\
+            \end{split}
+            \end{equation*}
+    \end{enumerate}
+\end{theorem} 
 
+\paragraph{Multiplicative Weight Update} This technique is widely used in Online Learning problems due to its simplicity and close-to-optimal regret bounds.
 
-One may notice that in \ref{algo:simple} the greedy policy was used, and no exploration steps were proposed. In fact, the greedy policy here turns to be optimal: all the reward variances depend only on unknown vector $n(t)$ and when we learn it we decrease reward variances for all arms simultaneously. Hence, in contrast to the following case, no exploration-exploitation balance is required here. 
-
-\paragraph{The Algorithm without a knapsack and without $\Omega_{ij}(t)$} Note that it is not crucial for the previous algorithm to know the oracle $\Omega_{ij}(t)$, as we may learn in the same way we learn $n(t)$. Formally, let $i$ be the arm the aggregator pulled at the moment $t$, then the consumption will be:
-
+Consider an interaction of an Agent and an Adversary. The Agent chooses some vector $\theta_t \in \Theta =  \{\theta \, | \, \|\theta\|_1 \leq 1, \, \theta \geq 0\}$ and the Adversary picks a linear function $f_t: \, \Theta \to [-1, 1]$. The Agent may use only previous history in his choices. His goal is to minimise the regret defined as: 
+    \[
+        \RR_{T} := \max_{\theta \in \Theta} \sum_{t = 1}^T g_t(\theta) - g_t(\theta_t)
+    \]
+    Let the $\theta_t$ be the following:
+    
     \begin{equation}
+        \label{eq:mwu_theta}
         \begin{split}
-            s(t|i) = & n(t)^Tf(t|i) = \sum_{j=1}^m n_j(t)\sum_{\xi = 1}^\tau q^T(\Omega_{ij}(t)P^{\xi}_i + (1-\Omega_{ij}(t))P^{\xi}_j)\pi(t) = \\
-            & = \sum_{j=1}^m\Omega_{ij}(t) n_j \sum_{\xi = 1}^{\tau}q^T(P_i^\xi-P_j^\xi)\pi(t) + \underbrace{\sum_{j=1}^{m}n_j\sum_{\xi=1}^\tau q^TP_j^\xi\pi(t)}_{s(t|0)}
+            \theta_{t+1, j} := \frac{w_{t, j}}{1 + \sum_{j}w_{t,j}}\quad where  \, w_{t, j} &:= \begin{cases}
+                    w_{t-1, j}(1 + \varepsilon)^{g_t(1_j)} & if\, g_t(1_j) > 0 \\
+                    w_{t-1, j}(1 - \varepsilon)^{-g_t(1_j)} & if\, g_t(1_j) \leq 0
+                    \end{cases}\\
+             \, \varepsilon &:= \sqrt{\frac{\log(d+1)}{T}}
         \end{split}
     \end{equation}
+    If $\theta$ is in form \ref{eq:mwu_theta}, then the following \todo{cite Arora} theorem holds:
     
-    and we have a discrete regularized regression problem over the vector $\Omega_{i}(t) \in \{0, 1\}^m$ here:
-    
-    \begin{equation}
-        \underbrace{s(t|i) - s(t|0)}_{target} = \sum_{j=1}^m\underbrace{\Omega_{ij}(t)}_{variables} \underbrace{n_j(t)\sum_{\xi=1}^\tau q^T(P_i^\xi - P_j^\xi)\pi(t)}_{features}
-    \end{equation}
-    
-    
- If we also have observations from $i$-th arm at $t$-th hour from the past (i.e. this is not the first time we pull this arm at this hour), then we may solve the least-squared optimization problem over $\Omega_{ij}(t)|_{j=j} \in \{0, 1\}^m$ which might reduce the fluctuations of $\Omega$. 
- 
- The algorithm \ref{algo:non_budgeted_without_oracle} for this case is the essentially the same: the new parts are marked with {\color{red} red}.
+\begin{theorem}
+    \[
+        \RR_T \leq  \sqrt{T\log(d+1)}
+    \]
+\end{theorem}
+
 \begin{algorithm}
-\caption{Non-budgeted TCL-control without oracle}
-\label{algo:non_budgeted_without_oracle}
+\caption{linCBwK-m}
+\label{algo:linCBwK-m}
 \begin{algorithmic}[1]
-\REQUIRE{${\cal P},\, n,\, \tau,$ {\color{red} \st{$\Omega_{ij}(t)$}}}
-\STATE{$n_i(0) := 1/n\, \forall i$}
-\STATE{$\pi_0 := \frac{1}{n}\sum_{i=1}^mn_i(0)u_i$}
-\STATE{$A(t) = \{\emptyset\} \, \forall t$}
-\STATE{$S(t) =  \{\emptyset\} \, \forall t$}
-\STATE{{\color{red}$\Omega_{ij}(0) = \{0,1\}^{m\times m}$ -- random matrix}}
+\REQUIRE{${\cal P},\, n,\, \tau,\, B$}
+\STATE{Initialise $n_i(0) := 1/n\, \forall i$}
+\STATE{Initialise $\pi_0 := \frac{1}{n}\sum_{i=1}^mn_i(0)u_i$, where $u_i:$ s.t. $P_i^Tu_i = u_i$}
+\STATE{Initialise $Z$ s.t. $\exists c, c'\, s.t. \frac{OPT}{B} \leq Z \leq c\frac{OPT}{B} + c'$}
+\STATE{Initialise $\theta_1 \in \Theta := \{\theta \, | \, \|\theta\|_1 \leq 1, \, \theta \geq 0\}$}
+\STATE{The following procedure launch for each hour separately:}
 \FOR{$t := 1\dots T$}
-    \STATE{Generate arm contexts $\{f_j(t|i)\}_{j=1}^{m}$ for all $i \in \{0, 1\dots m\}$}:
-    \STATE{$f_j(t|i) := \sum_{\xi = 1}^\tau q^T(\Omega_{ij}(t)P^{\xi}_i + (1-\Omega_{ij}(t))P^{\xi}_j)\pi(t)\quad i \in \{1\dots m\}$}
-    \STATE{$f_j(t|0) := \sum_{\xi = 1}^\tau q^TP^{\tau}_j\pi(t)$}
-    \IF{$\bs(t) == 0$}
-        \STATE{Set $i := 0$ (no control) and send it to the ensemble}
-        \STATE{Wait and receive $s(t|0)$ -- the actual ensemble consumption}
-        \STATE{{\color{red} When we have no control signal, we learn $n_j(t)$}}
-        \STATE{$A(t)$.append($f(t|0)$)}
-        \STATE{$S(t)$.append($s(t|0)$)}
-        \STATE{Solve a constrained regression problem to learn real $n_j(t)$:}
-        \STATE{$n(t) = \arg \min_{n \in R^n_+} \|A(t)n(t) - S(t)\|^2, \, s.t. \sum_{j=1}^m n_j(t) = n,\, n_j(t) \geq 0,\, \text{start from } n(t)$}
-        \STATE{Calculate next $\pi$:}
-        \STATE{$\pi(t+1) = \sum_{j=1}^mn_j(t)P^{\tau}_j\pi(t)$}
+    \STATE{Observe $\{x_{t, i}\}_{j=1}^{m}$ for all $i \in \{0, 1\dots m\}$}:
+    \STATE{$[x_{t, i}]_j := \sum_{\xi = 1}^\tau q^T(\Omega_{ij}P^{\xi}_i + (1-\Omega_{ij})P^{\xi}_j)\pi(t)\quad i \in \{1\dots m\}$}
+    \STATE{$[x_{t, 0}]_j := \sum_{\xi = 1}^\tau q^TP^{\tau}_j\pi(t)$}
+    \STATE{Observe $\bs_t$}
+    \IF{$\bs(t) == 0$ or budget is gone}
+        \STATE{$a_t := 0$ (no control)}
     \ELSE
-        \STATE{{\color{red} Calculate $s(t|i) = n(t)^Tf(t|i)$ for all $i \in \{0, 1, \dots m\}$}}
-        \STATE{{\color{red} Calculate variance estimations $\Delta s(t|i)$}}
-        \STATE{{\color{red} $i := \arg\min_{j \in \{0, 1, \dots m\}} {\cal L}_t(s(t|j) + B\sqrt{\Delta s(t|i)})$}}
-        \STATE{Send the chosen arm $i$ to the ensemble}
-        \STATE{Wait and receive $s(t|i)$ -- the actual ensemble consumption}
-        \STATE{{\color{red} Learn the vector $\Omega_{i}(t)$ solving optimization problem:}}
-        \STATE{{\color{red} $\Omega_i(t) := \arg \min_{\omega \in \{0, 1\}^m}\left(\underbrace{(s(t|i) - s(t|0))}_{s} - \sum_{j=1}^m\omega_j \underbrace{n_j(t)\sum_{\xi=1}^\tau q^T(P_i^\xi - P_j^\xi)\pi(t)}_{g_j}\right)^2 = $}}
-        \STATE{{\color{red} $ = \arg \min_{\omega \in \{0, 1\}^m} \left(s - w^Tg \right)^2$}}
-        \STATE{{\color{red} \textit{I suppose we need some kind of smooth  relaxation here}}}
-        \STATE{Calculate next $\pi$:}
-        \STATE{$\pi(t+1) = \frac{1}{n}\sum_{j=1}^mn_j(t)(\Omega_{ij}(t)P^{\tau}_i + (1-\Omega_{ij}(t))P^{\tau}_j))\pi(t)$}
+        \STATE{Compute optimistic estimations of $\bn$ for each arm $i$:}
+        \STATE{$\tn^i := \arg \max_{\tn \in C_t\, s.t. \|\tn\|_1 = n,\, \tn \geq 0}x_{t, i}^T\tn$}
+        \STATE{where $C_t$ is from \ref{eq:confidential_ellipsoid}: a confidential ellipsoid for $\bn$}
+        \STATE{Compute optimistic estimations of $\Omega_{i,:}$ for each arm $i$:}
+        \STATE{$\widetilde{\Omega}_{i,:} := \arg \min_{\xi \in G_t \cap [0, 1]^m}(\xi^T\tn^i)\theta_t$}
+        \STATE{where $G_t$ is a confidential ellipsoid for $\Omega_{i, :}$}
+        \STATE{$a_t := \arg\max_{i \in [1,\dots, m]} (x_{t, i} - Z\widetilde{\Omega}_{i, :})^T\tn^{i}\theta_t$ } 
     \ENDIF
-    
-        \IF{$n(t+1)$ is undefined yet}
-            \STATE{$n(t+1) = n(t)$}
-        \ENDIF
-        \IF{$\Omega_{ij}(t+1)$ is undefined yet}
-            \STATE{$\Omega_{ij}(t+1) = \Omega_{ij}(t)$}
-        \ENDIF
+    \STATE{Play $a_t$}
+    \STATE{Observe $s_{t}$ -- the actual ensemble consumption}
+    \STATE{Estimate $K(t) := \hat{n}_{t, a_t}^T\widetilde{\Omega}_{a_t, :}$}
+    \STATE{Use $s_{t}$ and $K(t)$ to calculate $\hat{n}_{t+1}$ and $\hat{\Omega}_{t+1}$ (see theorem \ref{theorem:ellipsoids}) }
+    \STATE{Use $\hat{n}_{t+1}$ and $\hat{\Omega}_{t+1}$ to recalculate $C_{t+1}$ and $G_{t+1}$ (see theorem \ref{theorem:ellipsoids})}
+    \STATE{Calculate $\theta_{t+1}$ according to \ref{eq:mwu_theta} with $g_t := \theta_t(K(t) - \frac{B}{T})$}
+        \STATE{Calculate next $\pi$ (shared within all procedures):}
+        \STATE{$\pi(t+1) = \frac{1}{n}\sum_{j=1}^mn_j(t)(\Omega_{ij}(t)P^{\tau}_i + (1-\Omega_{ij}(t))P^{\tau}_j))\pi(t)$}
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
+To sum up, in \cite{Agrawal2015} the following regret bounds were derived:
 
-\paragraph{The Algorithm with a knapsack and without $\Omega_{ij}(t)$} This one is our final result. Note that we just need to apply not a regular UCB1 bandit inside the abovementioned algorithm, but the "bandit-with-knapsack" solver from \cite{Badanidiyuru2013} or something similar. 
+\begin{theorem} \textbf{(Agrawal, 2015):} If we find $Z$ from the initialisation of algorithm \ref{algo:linCBwK-m}, then with the probability $\delta$ the algorithm \ref{algo:linCBwK-m} achieves the following regret:
+    \[
+        \RR_T \leq O\left(\left(\frac{OPT}{B} + 1\right)m\sqrt{T\log \frac{T}{\delta}\log{T}} \right)
+    \]
+
+\end{theorem}
