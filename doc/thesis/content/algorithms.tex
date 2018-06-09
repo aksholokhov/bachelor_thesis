@@ -1,0 +1,209 @@
+\section{Learning Algorithms}
+In this section we apply two algorithms for solving abovementioned poblems \ref{eq:minimisation_setup} and \ref{eq:stabilisation_setup}: the one is PrimalDualBwK from \cite{Badanidiyuru2013}, and another is linCBwK from \cite{Agrawal2015}. We embedded to the later our Markov model, so let us address it as linCBwK-m.
+
+The comparison of these two algorithms is summarised in table \ref{table:algorithms_comparison}
+
+\begin{table}[h!]
+    \centering
+    \label{table:algorithms_comparison}
+    \begin{tabular}{|l|c|c|}
+        \hline
+         & PrimalDualBwK & linCBwK-m \\
+         \hline \hline 
+         Is knowledge of k(t) required & Yes & No \\
+         \hline 
+         Parameters estimation method & UCB and LCB & Confidential Ellipsoids \\
+         \hline
+         Assumptions on reward structure & No & Linear (\ref{def:linear_relisability_assumption}) \\
+         \hline 
+         Using Markov model & No & Yes \\
+         \hline
+    \end{tabular}
+    \caption{Comparison of two learning algorithms}
+\end{table}
+
+\subsection{PrimalDualBwK}
+
+This algorithm unites UCB approach with Online Stochastic Packing Problem. It uses a simple idea of making decisions according to the highest "bang-per-buck" ratio. It treats set of possible control matrices $\PP$ as an abstract set of $m$ arms and do not use any model assumptions on devices behaviour. However, such simplicity requires to know the number of devices $k(t)$ which accepts Aggregator's requests at the moment $t$. It does not contradict to ensemble approach as $k(t)$ is an aggregated value which does not allow to infer individual users' feedback. Hence it still meets all the requirements. In addition, due to its simplicity, this algorithm will be considered as a baseline approach.
+
+As we do not modify the original algorithm, we do not put the pseudocode here. To obtain it, one may address \cite{Badanidiyuru2013}. 
+
+\subsection{linCBwK}
+
+In the following section we treat \ref{eq:minimisation_setup} as a linear contextual bandit with knapsack problem (see \ref{def:lincbwk_setup}). In this form of bandits setup we face two major troubles: 
+
+% Define the policy as some mapping from arm contexts $x_{a,t}$ to the matrix number $i \in \{0, 1, \dots, m\}$ (a.k.a. arm). The goal is to learn the policy $\nu$ which minimises the regret:
+
+%\begin{equation}
+%    \begin{split}
+%    \min_{\nu}\, & {\cal R}^{\nu}_T = \min_{\nu} \sum_{t=1}^T(r^{\nu}(t) - r^*(t)) \\
+%     s.t. & \sum_{t=1}^T k(t) \leq B 
+%     \end{split}
+%\end{equation}
+%where the penalty is defined as
+%\[
+%    r^{\nu}(t) = c(t)|s^{\nu}(t) - {\bar s}(t)|
+%\]
+%and $k(t)$ is the number of loads who accepted the curtailment request at the time $t$, $B$ is the contract limit for user disturbance and $\nu$ is the policy being used. Hereafter we refer to $r^{\nu}(t)$ as $r(t)$.
+
+
+\begin{enumerate}
+    \item General bandit with knapsack problem setup  consider penalties as a random independent variables over time and arms. Both assumptions here are false: our choices from the past strongly affects the current reward distributions.
+    \item Variables $k(t)$ are unobservable.
+\end{enumerate} 
+
+To deal with these issues consider the the mechanics of how $s(t)$ depends on aggregator's actions according to its Markov models. Suppose that by the time $t$ we have a (possibly unknown) state-distribution $\pi(t)$ (see \ref{eq:pi_definition}). Denote the number of devices which have chosen matrix $\bP_j$ at the moment $t$ as $n_j(t)$. Denote also the fraction of devices, which at the moment $t$ accepts matrix $P_i$ having this own behaviour $\bP_j$ as $\Omega_{ij}(t)$. It is easy to see that if we send no control (arm $0$), then the next-moment consumption will be:
+
+    \begin{equation}
+    \label{eq:no_control_consumption}
+    \begin{split}
+        s(t|0) := \sum_{j=1}^{m}n_j(t)q^TP_j\pi(t) =  \sum_{j=1}^{m}n_j(t)[x_{t, 0}]_j = n(t)^Tx_{t, 0}
+    \end{split}
+    \end{equation}
+    
+    and if we send $i^{th}$ matrix $P_i$, the consumption will be:
+
+    \begin{equation}
+        \label{eq:arm_consumption}
+    \begin{split}
+        s(t|i) & := \sum_{j=1}^mn_j(t)q^T(\Omega_{ij}(t)P_i + (1-\Omega_{ij}(t))P_j)\pi(t) = \\& = \sum_{j=1}^{m}n_j(t)[x_{t, i}]_j = n(t)^Tx_{t, i}
+    \end{split}
+    \end{equation}
+    
+    The model appears to be linear over unknown vector $n^T(t)$ and some vector $x_{t, i}\, i \in [0, 1, \dots m]$ which we know if we have $\pi(t)$ and $\Omega_{ij}(t)$. Therefore it is surprisingly convenient to consider $x_{t, i}$ as a feature vector of an arm $i$ at the moment $t$. Note, that the features $[x_{t, i}]_j$ have the natural interpretation as the amount of energy being consumed by an average device which has $\bP = P_j$ at the time $t$ if we pull the $i$-th arm. Moreover, we also have an estimator for budgeted variable: $k(t|i) = \sum_{i=1}^{m}\Omega_{ij}n_j(t)$.
+
+The above mentioned arm-contexts $x_{i, t}$ reveal a straightforward formulation for the minimisation setup \ref{eq:minimisation_setup}
+
+\begin{align}
+    \label{eq:minimization_bandit_setup}
+    \begin{split}    
+    \min_{\nu:\, t \to \{0, 1\dots m\} }& \sum_{t=1}^Tn(t)^Tx_{t, \nu(t)} = \min_{\nu} \sum_{t=1}^Ts^\nu(t)\\
+     s.t. \E& \sum_{t=1}^T k(t) \leq B \\
+     & \sum_{j=1}^m n_j(t) = n\, \forall t\\
+     & n_j(t) \geq 0\, \forall t
+     \end{split}
+\end{align} 
+ 
+as well as for stabilisation setup \ref{eq:stabilisation_setup}
+
+\begin{align}    
+    \begin{split}
+    \label{eq:stabilization_bandit_setup}
+    \min_{\nu:\, t \to \{0, 1\dots m\} }& \sum_{t=1}^T|n(t)^Tx_{t, \nu(t)}) - \bs(t)| = \min_{\nu } \sum_{t=1}^T|s^\nu(t) - \bs(t)|\\
+     s.t. \E& \sum_{t=1}^T k(t) \leq B \\
+     & \sum_{j=1}^m n_j(t) = n\, \forall t \\
+     & n_j(t) \geq 0\, \forall t
+     \end{split}
+\end{align}
+
+By now $n(t)$ is an unknown time series, and to the best of our knowledge there are no general BwK algorithms for such setup. Hence, we assume that $n(t)$ is a periodic function over time with a period of 24 hours (at least within one season of a year), so we can consider \ref{eq:minimization_bandit_setup} and \ref{eq:stabilization_bandit_setup} as a set of 24 bandits: each one is learning to make a decision at the assigned hour. Note that these problems are in exact form for recently emerged budgeted bandit solvers (\cite{Agrawal2015}), and all the requirements are met: the divergence between predicted and modelled consumption may appear only regarding to stochastic fluctuations due to the finiteness of the ensemble, hence we have independence of reward as a function of a context through arms and time. 
+
+
+\paragraph{The Algorithm with known $\Omega_{ij}(t)$ and without a knapsack:} Consider a simpler setup when $K = \infty$ i.e. we have no knapsack constraints in our problem. Here $\tau$ is the number of steps which a device performs each hour. We also assume that we do not know neither an initial state distribution $\pi(0)$ nor $n_j(t)$. In this case \ref{algo:simple} is how a dummy algorithm may look like (we assume here a \ref{eq:stabilization_loss} loss function).
+
+\begin{algorithm}
+\caption{Non-budgeted TCL-control with oracle}
+\label{algo:simple}
+\begin{algorithmic}[1]
+\REQUIRE{${\cal P},\, n,\, \tau, \Omega_{ij}(t)$}
+\STATE{$n_i(0) := 1/n\, \forall i$}
+\STATE{$\pi_0 := \frac{1}{n}\sum_{i=1}^mn_i(0)u_i$, where $u_i$ is a stationary distribution of the matrix $P_i$}
+\STATE{$A(t) = \{\emptyset\} \, \forall t$ where A(t) is an array of all feature vectors through time which we got at the hour $t$. It will be used as a learning dataset for the $t$-th regressor.}
+\STATE{$S(t) =  \{\emptyset\} \, \forall t$ where S(t) is an array of all s(t) through time which we got at the hour $t$. These are the targets for the $t$-th regressor.}
+\FOR{$t := 1\dots T$}
+    \STATE{Generate the arm contexts $\{f_j(t|i)\}_{j=1}^{m}$ for all $i \in \{0, 1\dots m\}$}:
+    \STATE{$f_j(t|i) := \sum_{\xi = 1}^\tau q^T(\Omega_{ij}(t)P^{\xi}_i + (1-\Omega_{ij}(t))P^{\xi}_j)\pi(t)\quad i \in \{1\dots m\}$}
+    \STATE{$f_j(t|0) := \sum_{\xi = 1}^\tau q^TP^{\tau}_j\pi(t)$}
+    \IF{$\bs(t) == 0$}
+        \STATE{Set $i := 0$ (no control) and send it to the ensemble}
+    \ELSE
+        \STATE{$i := \arg\max_{i\in \{1 \dots m\}} {\cal L}_t(s(t|i)) := \arg\max_{i\in \{1 \dots m\}}{\cal L}_t(n(t)^Tf(t|i))$}.
+        \STATE{Send the chosen arm $i$ to the ensemble}
+    \ENDIF
+    \STATE{Wait and receive $s(t|i)$ -- the actual ensemble consumption}
+        \STATE{$A(t)$.append($f(t|i)$)}
+        \STATE{$S(t)$.append($s(t|i)$)}
+        \STATE{Solve a constrained regression problem to learn real $n_j(t)$:}
+        \STATE{$n(t) = \arg \min_{n \in R^n_+} \|A(t)n(t) - S(t)\|^2, \, s.t. \sum_{j=1}^m n_j(t) = n,\, n_j(t) \geq 0,\, \text{start from } n(t)$}
+        \STATE{Calculate next $\pi$:}
+        \STATE{$\pi(t+1) = \frac{1}{n}\sum_{j=1}^mn_j(t)(\Omega_{ij}(t)P^{\tau}_i + (1-\Omega_{ij}(t))P^{\tau}_j))\pi(t)$}
+        \IF{$n_j(t+1)$ are undefined yet}
+            \STATE{$n_j(t+1) = n_j(t)$}
+        \ENDIF
+\ENDFOR
+\end{algorithmic}
+    
+\end{algorithm}
+
+
+One may notice that in \ref{algo:simple} the greedy policy was used, and no exploration steps were proposed. In fact, the greedy policy here turns to be optimal: all the reward variances depend only on unknown vector $n(t)$ and when we learn it we decrease reward variances for all arms simultaneously. Hence, in contrast to the following case, no exploration-exploitation balance is required here. 
+
+\paragraph{The Algorithm without a knapsack and without $\Omega_{ij}(t)$} Note that it is not crucial for the previous algorithm to know the oracle $\Omega_{ij}(t)$, as we may learn in the same way we learn $n(t)$. Formally, let $i$ be the arm the aggregator pulled at the moment $t$, then the consumption will be:
+
+    \begin{equation}
+        \begin{split}
+            s(t|i) = & n(t)^Tf(t|i) = \sum_{j=1}^m n_j(t)\sum_{\xi = 1}^\tau q^T(\Omega_{ij}(t)P^{\xi}_i + (1-\Omega_{ij}(t))P^{\xi}_j)\pi(t) = \\
+            & = \sum_{j=1}^m\Omega_{ij}(t) n_j \sum_{\xi = 1}^{\tau}q^T(P_i^\xi-P_j^\xi)\pi(t) + \underbrace{\sum_{j=1}^{m}n_j\sum_{\xi=1}^\tau q^TP_j^\xi\pi(t)}_{s(t|0)}
+        \end{split}
+    \end{equation}
+    
+    and we have a discrete regularized regression problem over the vector $\Omega_{i}(t) \in \{0, 1\}^m$ here:
+    
+    \begin{equation}
+        \underbrace{s(t|i) - s(t|0)}_{target} = \sum_{j=1}^m\underbrace{\Omega_{ij}(t)}_{variables} \underbrace{n_j(t)\sum_{\xi=1}^\tau q^T(P_i^\xi - P_j^\xi)\pi(t)}_{features}
+    \end{equation}
+    
+    
+ If we also have observations from $i$-th arm at $t$-th hour from the past (i.e. this is not the first time we pull this arm at this hour), then we may solve the least-squared optimization problem over $\Omega_{ij}(t)|_{j=j} \in \{0, 1\}^m$ which might reduce the fluctuations of $\Omega$. 
+ 
+ The algorithm \ref{algo:non_budgeted_without_oracle} for this case is the essentially the same: the new parts are marked with {\color{red} red}.
+\begin{algorithm}
+\caption{Non-budgeted TCL-control without oracle}
+\label{algo:non_budgeted_without_oracle}
+\begin{algorithmic}[1]
+\REQUIRE{${\cal P},\, n,\, \tau,$ {\color{red} \st{$\Omega_{ij}(t)$}}}
+\STATE{$n_i(0) := 1/n\, \forall i$}
+\STATE{$\pi_0 := \frac{1}{n}\sum_{i=1}^mn_i(0)u_i$}
+\STATE{$A(t) = \{\emptyset\} \, \forall t$}
+\STATE{$S(t) =  \{\emptyset\} \, \forall t$}
+\STATE{{\color{red}$\Omega_{ij}(0) = \{0,1\}^{m\times m}$ -- random matrix}}
+\FOR{$t := 1\dots T$}
+    \STATE{Generate arm contexts $\{f_j(t|i)\}_{j=1}^{m}$ for all $i \in \{0, 1\dots m\}$}:
+    \STATE{$f_j(t|i) := \sum_{\xi = 1}^\tau q^T(\Omega_{ij}(t)P^{\xi}_i + (1-\Omega_{ij}(t))P^{\xi}_j)\pi(t)\quad i \in \{1\dots m\}$}
+    \STATE{$f_j(t|0) := \sum_{\xi = 1}^\tau q^TP^{\tau}_j\pi(t)$}
+    \IF{$\bs(t) == 0$}
+        \STATE{Set $i := 0$ (no control) and send it to the ensemble}
+        \STATE{Wait and receive $s(t|0)$ -- the actual ensemble consumption}
+        \STATE{{\color{red} When we have no control signal, we learn $n_j(t)$}}
+        \STATE{$A(t)$.append($f(t|0)$)}
+        \STATE{$S(t)$.append($s(t|0)$)}
+        \STATE{Solve a constrained regression problem to learn real $n_j(t)$:}
+        \STATE{$n(t) = \arg \min_{n \in R^n_+} \|A(t)n(t) - S(t)\|^2, \, s.t. \sum_{j=1}^m n_j(t) = n,\, n_j(t) \geq 0,\, \text{start from } n(t)$}
+        \STATE{Calculate next $\pi$:}
+        \STATE{$\pi(t+1) = \sum_{j=1}^mn_j(t)P^{\tau}_j\pi(t)$}
+    \ELSE
+        \STATE{{\color{red} Calculate $s(t|i) = n(t)^Tf(t|i)$ for all $i \in \{0, 1, \dots m\}$}}
+        \STATE{{\color{red} Calculate variance estimations $\Delta s(t|i)$}}
+        \STATE{{\color{red} $i := \arg\min_{j \in \{0, 1, \dots m\}} {\cal L}_t(s(t|j) + B\sqrt{\Delta s(t|i)})$}}
+        \STATE{Send the chosen arm $i$ to the ensemble}
+        \STATE{Wait and receive $s(t|i)$ -- the actual ensemble consumption}
+        \STATE{{\color{red} Learn the vector $\Omega_{i}(t)$ solving optimization problem:}}
+        \STATE{{\color{red} $\Omega_i(t) := \arg \min_{\omega \in \{0, 1\}^m}\left(\underbrace{(s(t|i) - s(t|0))}_{s} - \sum_{j=1}^m\omega_j \underbrace{n_j(t)\sum_{\xi=1}^\tau q^T(P_i^\xi - P_j^\xi)\pi(t)}_{g_j}\right)^2 = $}}
+        \STATE{{\color{red} $ = \arg \min_{\omega \in \{0, 1\}^m} \left(s - w^Tg \right)^2$}}
+        \STATE{{\color{red} \textit{I suppose we need some kind of smooth  relaxation here}}}
+        \STATE{Calculate next $\pi$:}
+        \STATE{$\pi(t+1) = \frac{1}{n}\sum_{j=1}^mn_j(t)(\Omega_{ij}(t)P^{\tau}_i + (1-\Omega_{ij}(t))P^{\tau}_j))\pi(t)$}
+    \ENDIF
+    
+        \IF{$n(t+1)$ is undefined yet}
+            \STATE{$n(t+1) = n(t)$}
+        \ENDIF
+        \IF{$\Omega_{ij}(t+1)$ is undefined yet}
+            \STATE{$\Omega_{ij}(t+1) = \Omega_{ij}(t)$}
+        \ENDIF
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+
+\paragraph{The Algorithm with a knapsack and without $\Omega_{ij}(t)$} This one is our final result. Note that we just need to apply not a regular UCB1 bandit inside the abovementioned algorithm, but the "bandit-with-knapsack" solver from \cite{Badanidiyuru2013} or something similar. 

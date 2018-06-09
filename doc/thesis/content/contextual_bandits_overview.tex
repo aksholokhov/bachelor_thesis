@@ -39,6 +39,7 @@ $$
   In contrast to the regular bandit problem, the contextual bandit setup tends to be tougher problem to solve. One approach is to assume the particular dependency model between the arms' context $x_{a,t}$ and the expected reward $r_t$. So, the next important class of contextual bandits is so-called linear contextual bandits, which setup accepts the following assumption:
   
   \begin{definition}
+    \label{def:linear_relisability_assumption}
       Linear Realisability Assumption: there is a unknown vector $\theta^* \in \R^k$, such that: 
         \begin{equation*}
                 r_{t,a} = \E\left[r_{t,a}|x_{t,a}\right] + \varepsilon_t, \quad s.t. \,\E\left[r_{t,a}|x_{t,a}\right] = x_{t,a}^T\theta^*,\, \varepsilon \sim \N(0, \sigma^2)
@@ -48,7 +49,7 @@ $$
   There are at least two distinguish approaches to algorithms design for this problem class. The first one is an adaptation of UCB1 approach: LinUCB \cite{Li2010}, which tackles optimisation subroutine on $\theta$ with a ridge regression. Later, \cite{Abbasi-Yadkori2011} provided better theoretical analysis for this algorithm by eliminating the assumption that the reward is identically distributed over time and arms, which is usually far from true. The similar case with different regularisation strategy was examined by \cite{Auer2003}. Another approach is to adapt Thompson Sapling technique \cite{Li2011} for balancing exploration and exploitation to the linear reward model. It was done by \cite{Agrawal2013}. This particular linear contextual bandit setup will be widely used later in this study. For further information on contextual bandit problems one is recommended to examine \cite{Zhou2015}.
   
   \subsection{Multiarmed Bandits with Knapsack}
-  In real life, while learning, the agent may consume one or more supply of globally constrained resources, limits on which are usually known beforehand. For example, in experimental medical trials possibility of particular treatment depends on the total amount of meds available. Another example is showing advertisements which is constrained not only by the number of users but by the client's advertisement budget as well. 
+  In real life, while learning, the agent may consume one or more supply of globally constrained resources, limits on which are usually known beforehand. For example, in experimental medical trials possibility of particular treatment depends on the total amount of meds available. Another example is showing advertisements which is constrained not only by the number of users but by the client's advertisement budget as well. The first systematisation and regret bounds for general BwK setup \cite{Badanidiyuru2013} appeared within last five years, the first generalisation to contextualised case -- in 2015: \cite{Agrawal2015}.
   
   According to \cite{Badanidiyuru2013}, the formal problem setup for this case is the following: 
   
@@ -62,7 +63,9 @@ $$
   
   Two algorithms for the most general BwK setup was proposed by \cite{Badanidiyuru2013}: \textit{PrimalDualBwK} and \textit{BalancedExploration}. Both of them utilise upper confidence bounds design principles and experience suboptimal regret. The BwK adaptation of Thompson Sampling technique was introduced by \cite{Xia2015}, and the case of "convex knapsacks" was examined by \cite{Agrawal2014}. The linear contextual BwK setup (linCBwK) was investigated by \cite{Agrawal2015}. As we will use this setup later in this study, let us consider it in details.
   
-  \begin{definition} \textbf{linCBwK setup \cite{Agrawal2015}}:
+  \begin{definition}
+    \label{def:lincbwk_setup}
+   \textbf{linCBwK setup \cite{Agrawal2015}}:
       There are $m$ "arms" $\{a_i\}_{i=1}^m$. Let $B$ be the budget. In each round the agent observes context vectors $x_{a,t} \in \R^k$ for each arm $a$, chooses some action $a_t$ and observes a reward $r_t \in [0, 1]$ and a consumption vector $d_t \in [0,1]^d$. Also the decision maker may always choose a "no-action" option in order to get 0 reward and \textbf{0} consumption. In each round the a tuple $\{x_{a,t}, r_t, d_t\}$ is sampled from unknown distribution $D$ is independent on everything before. Assume that there exist an unknown vector $\theta^* \in [0,1]^k$ and a matrix $W^* \in [0,1]^{k \times d}$ such that for all arms $a$ given the context $x_{a,t}$ and history $H_{t-1}$,
       \[
         \E\left[r_t|a, x_{t,a}, H_{t-1}\right] = x_{a,t}^T\theta^*, \quad \E\left[d_{t}|x_{a,t}, H_{t-1} \right]

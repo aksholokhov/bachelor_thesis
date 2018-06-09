@@ -1,0 +1,62 @@
+\section{Notation and Problem Setup} We consider a system (an Ensemble) of $n$ thermostatically controlled loads, indexed by $i = 1, 2, \dots, n$. Each load is a TCL, all loads in the ensemble are the same type. All $m$ possible device's behaviours are modelled by a set of Markov Chains 
+
+\begin{equation}
+\label{eq:possible_matrices}
+\PP = \{P^{(1)}, P^{(2)}, \dots, P^{(m)}\}    
+\end{equation}
+
+ We refer $P_i(t) \in \mathbb{R}^{N\times N}$ as a transition matrix of load $i$, $i = 1, \dots, n$, and $N$ is a number of possible states of any load (all loads have the same number of states). Each load is characterised by its own behaviour function defined as a function $P_i(t)$. All these behaviours are independent.
+ 
+We suppose that there is an Aggregator, which broadcasts matrices ${\bar P}(t)$, $t=1, \dots, T$ as a control signal to the ensemble. We also suppose that any ${\bar P}(t)$ and $P_{i}(t)$  $\in {\cal P}$. Each load is allowed to accept or reject a transition matrix ${\bar P}(t)$ according to its own reasons e.g. direct control of its owner or some legal temperature limitations. We do not formalise or restrict its decision model in any way.
+
+We refer $\pi_i(t)$ as a unit vector corresponding to the state of load $i$, $1\le i \le n$, at time $t$, so that  
+
+\begin{equation}
+    \label{eq:pi_definition}
+    \pi(t) = \frac{1}{n}\sum_{i=1}^n \pi_i(t)
+\end{equation}
+
+We also assume the the power consumption $q$ at each state is known, so that the total power consumption $s(t)$ is 
+\[s(t) = n\cdot \pi(t)^\top q.\]
+We refer ${\bar s}(t)$ as the power requested by the system operator at time $t$. 
+
+We also assume the loss function of the System Operator to be either a consumption minimisation loss
+
+\begin{equation}
+\label{eq:consumption_minimisation_loss}
+\sum_{i=1}^T c(t) s(t)  
+\end{equation}
+
+or consumption stabilisation loss
+
+\begin{equation}
+\label{eq:consumption_stabilisation_loss}
+\sum_{i=1}^T c(t) |{\bar s}(t) - s(t)|    
+\end{equation}
+
+
+where $c(t) > 0$  is non-negative cost function. 
+
+
+In this research we implement an incentive-based model of users motivation to participate in the curtailment program. In particular we consider the Emergency Demand-Response Program (EDRP) setting, in which consumers get incentive payments for reducing their power consumption during reliability triggered events (see \cite{Aalami2010}). Consumers may choose not to curtail and therefore to forgo the payments, which are usually specified beforehand \cite{Vardakas2015}. Due to privacy protection reasons (\cite{Lisovich2010}) and general infrastructure limitations, the aggregator is forbidden to observe exact loads accepting a curtailment request, but it is important to know the total amount $k(t)$ of these loads for two reasons: 
+    \begin{enumerate}
+        \item As the aggregator's budget is strictly limited, it must estimate expenses for incentive payments. 
+        \item Most of the DR incentive-based programs limit the total amount of curtailment hours to avoid user disturbance (typically 200 hours/year \cite{Aalami2010b})       
+    \end{enumerate}
+    So it is important to estimate $k(t)$ on-the-fly. Later in this study we propose two algorithms: the former requires to know $k(t)$ and the later has no such requirements, but make additional assumptions on devices' behaviour. 
+    
+To sum up, the exact objective with consumption stabilisation loss \ref{eq:consumption_stabilisation_loss} will be:
+
+\begin{align}
+    \label{eq:stabilisation_setup}
+    \min & \sum_{i=1}^T c(t) |{\bar s}(t) - s(t)| \\
+    s.t. & \sum_{t=1}^T k(t) \leq K 
+\end{align}
+
+and with consumption stabilisation loss \ref{eq:consumption_stabilisation_loss} it takes the form of
+
+\begin{align}
+    \label{eq:minimisation_setup}
+    \min & \sum_{i=1}^T c(t)s(t) \\
+    s.t. & \sum_{t=1}^T k(t) \leq K 
+\end{align}
