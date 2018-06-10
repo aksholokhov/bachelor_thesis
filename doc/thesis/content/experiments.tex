@@ -9,7 +9,12 @@ Here is how testing environment was developed:
 \begin{enumerate}
     \item The real mid-January indoor temperatures in a downtown office in Moscow was acquired. 
     \item A dummy Heating Device with three modes (see \ref{fig:matrices_example}) was modelled.
-    \item A possible stationery temperatures for each behaviour in each hour were calculated using a simple heat equilibrium model: \todo{insert model}
+    \item A possible stationery temperatures for each behaviour in each hour were calculated using a simple heat equilibrium model:
+        \[ 
+            k(T_{in} - T_{out}) = \frac{\partial Q}{\partial t}, \quad
+            cT_{in} = Q,\quad \frac{\partial Q}{\partial t} = c \frac{d T_{in}}{dt}
+        \]
+        where $k$ is a wall's thermal conductivity, $T_{out}$ -- outdoor temperature, $T_{in}$ -- indoor temperature, $\frac{\partial Q}{\partial t}$ -- heat stream from the Heating Device, $c$ is an air heat capacity. 
     \item An ensemble of users was generated. It has the following parameters:
         \begin{itemize}
             \item Comfort temperature $t_0 = 22 C +  \NN(0, 1)$ 

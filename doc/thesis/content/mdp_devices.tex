@@ -4,18 +4,29 @@
 
 A common approach of dealing with uncertainty in Demand-Response is to model loads behaviour as some Markov Decision Processes . The viability of such models was proven theoretically and empirically by many studies. First, a detailed survey on modelling of TCLs with MPDs was conducted by \cite{Koch2011}, where a significant precision of such models was demonstrated in experiment. Next, in \cite{Trovato2015} an ensemble of refrigerators was modelled by MCs. And finally, \cite{Wu2016} was introduced such models for Plug-in Electric Vehicles. This approach is widely used in DR programs when the aggregator lacks of communication infrastructure, especially in case of ensemble approach \cite{Chertkov2017}. 
 
-To provide some intuition let us give an example of such modelling. Consider an ideal air heater, which has three working modes: no heating ($Q_0$), moderate heating ($Q_1$) and maximum heating ($Q_2$) with an energy consumption vector $\widetilde{q} = [q_1, q_2, q_3] \in R^3$ for these modes respectively. Suppose that this Air Heater moves from one mode to another according to some fixed transition matrix $P \in \R^{3 \times 3}$ of an ergodic Markov chain. (see fig\todo{add P fig and ref}). It is easy to see that the average heat stream from this heater will be $q^Tu$, where $u$ is a unit eigenvector of the matrix $P$: $u := \{u : P^Tu = u\}$. Within a short period when the outdoor temperature is fixed, due to the heat balance equations, it leads to some fixed indoor temperature $t$. Hence, each behaviour model $P$ defines average energy consumption and mean indoor temperature for each room. In the figure \ref{fig:matrices_example} one may see two different control matrices $P_1$ and $P_2$ representing two different behaviour models. 
+To provide some intuition let us give an example of such modelling. Consider an ideal air heater, which has three working modes: no heating ($Q_0$), moderate heating ($Q_1$) and maximum heating ($Q_2$) with an energy consumption vector $\widetilde{q} = [q_1, q_2, q_3] \in R^3$ for these modes respectively. Suppose that this Air Heater moves from one mode to another according to some fixed transition matrix $P \in \R^{3 \times 3}$ of an ergodic Markov chain. (e.g. see fig \ref{fig:matrices_example}). It is easy to see that the average heat stream from this heater will be $q^Tu$, where $u$ is a unit eigenvector of the matrix $P$: $u := \{u : P^Tu = u\}$. Within a short period when the outdoor temperature is fixed, due to the heat balance equations, it leads to some fixed indoor temperature $t$. Hence, each behaviour model $P$ defines average energy consumption and mean indoor temperature for each room. In the figure \ref{fig:matrices_example} one may see a dummy matrix $P$ which represents some behaviour model of Air Heater. 
 
 \begin{figure}[h!]
     \centering
-    \tikz[scale=3]{
+    
+    \tikz[scale=3, node distance = 3cm]{
         \begin{scope}[nodes={draw, ultra thick}]
-            \node (agent) [rounded rectangle] {Agent};
-            \node (environment) [right = of agent, rounded rectangle] {Environment};
+            \node (q1) [circle] {$Q_1$};
+            \node (q2) [below right = of q1, circle] {$Q_2$};
+            \node (q3) [above right= of q2, circle] {$Q_3$};
         \end{scope}
         \path[->]
-            (agent) edge [bend left] node [above] {$a_t$} (environment)
-            (environment) edge [bend left] node [below] {$r_t, \, x_{t+1}, Q_{t+1}$} (agent); 
+            (q1) edge [loop above] node [above] {$2/3$} (q1)
+            (q1) edge node [above] {$1/3$} (q2)
+            (q1) edge [bend left] node [above] {$0$} (q3)
+            (q2) edge [bend left] node [below] {$1/6$} (q1)
+            (q2) edge [loop below] node [below] {$2/3$} (q2)
+            (q2) edge node [above] {$1/6$} (q3)
+            (q3) edge node [below] {$1/3$} (q1)
+            (q3) edge [bend left] node [below] {$1/3$} (q2)
+            (q3) edge [loop above] node [above] {$1/3$} (q3); 
     }
+
     \label{fig:matrices_example}
+    \caption{An example of behaviour a 3-state device modelled with Markov Chain $P$}
 \end{figure} 
